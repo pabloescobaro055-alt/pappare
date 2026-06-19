@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button";
 
 type Status = "idle" | "loading" | "success" | "error";
 
+const successMessage = "Спасибо! Заявка отправлена. Мы скоро свяжемся с вами.";
+const errorMessage = "Не удалось отправить заявку. Пожалуйста, попробуйте позже или позвоните нам.";
+
 const fields = [
   ["Имя *", "name", "text", true, "Иван"],
   ["Телефон *", "phone", "tel", true, "+7 999 123-45-67"],
@@ -21,10 +24,12 @@ export function ReservationForm({ dark = false }: { dark?: boolean }) {
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const formElement = event.currentTarget;
+
     setStatus("loading");
     setMessage("");
 
-    const form = new FormData(event.currentTarget);
+    const form = new FormData(formElement);
     const payload = {
       name: String(form.get("name") || ""),
       phone: String(form.get("phone") || ""),
@@ -41,18 +46,19 @@ export function ReservationForm({ dark = false }: { dark?: boolean }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      const data = await response.json();
+      const data = await response.json().catch(() => null);
 
-      if (!response.ok || !data.ok) {
-        throw new Error(data.message || "Не удалось отправить заявку.");
+      if (!response.ok || !data?.ok) {
+        throw new Error("Reservation request failed");
       }
 
       setStatus("success");
-      setMessage(data.message);
-      event.currentTarget.reset();
+      setMessage(successMessage);
+      formElement.reset();
     } catch (error) {
+      console.error("Reservation form submit failed", error);
       setStatus("error");
-      setMessage(error instanceof Error ? error.message : "Не удалось отправить заявку.");
+      setMessage(errorMessage);
     }
   }
 

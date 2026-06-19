@@ -35,29 +35,33 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true });
   }
 
-  const messageId = Number(callback.message?.message_id);
+  try {
+    const messageId = Number(callback.message?.message_id);
 
-  if (isDatabaseConfigured()) {
-    const reservation = await updateReservationStatus(Number(id), status);
-    const storedMessageId = Number(callback.message?.message_id || reservation.messageId);
+    if (isDatabaseConfigured()) {
+      const reservation = await updateReservationStatus(Number(id), status);
+      const storedMessageId = Number(callback.message?.message_id || reservation.messageId);
 
-    if (storedMessageId) {
-      await editTelegramReservationMessage({
-        ...reservation,
-        status,
-        messageId: storedMessageId,
-      });
+      if (storedMessageId) {
+        await editTelegramReservationMessage({
+          ...reservation,
+          status,
+          messageId: storedMessageId,
+        });
+      }
+    } else if (messageId) {
+      await editTelegramCallbackMessage(messageId, String(callback.message?.text || ""), status);
     }
-  } else if (messageId) {
-    await editTelegramCallbackMessage(
-      messageId,
-      String(callback.message?.text || ""),
-      status,
-      Number(id),
-    );
-  }
 
-  await answerTelegramCallback(callback.id, `Статус: ${statusLabel(status)}`);
+    await answerTelegramCallback(callback.id, statusLabel(status));
+  } catch (error) {
+    console.error("Telegram callback handling failed", error);
+    try {
+      await answerTelegramCallback(callback.id, "Не удалось обновить статус");
+    } catch (callbackError) {
+      console.error("Telegram callback answer failed", callbackError);
+    }
+  }
 
   return NextResponse.json({ ok: true });
 }

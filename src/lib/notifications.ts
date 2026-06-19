@@ -15,6 +15,8 @@ export type NotificationResult = {
   error?: string;
 };
 
+const emptyTelegramKeyboard = { inline_keyboard: [] };
+
 const telegramButtons = (id?: number) => ({
   inline_keyboard: [
     [
@@ -25,10 +27,14 @@ const telegramButtons = (id?: number) => ({
   ],
 });
 
+function statusSuffix(status: string) {
+  return `\n\nСтатус: ${statusLabel(status)}`;
+}
+
 function withStatus(text: string, status: string) {
   const statusIndex = text.lastIndexOf("\n\nСтатус:");
   const baseText = statusIndex >= 0 ? text.slice(0, statusIndex) : text;
-  return `${baseText}\n\nСтатус: ${statusLabel(status)}`;
+  return `${baseText}${statusSuffix(status)}`;
 }
 
 export function parsePreferredTime(value = "") {
@@ -47,10 +53,10 @@ export function parsePreferredTime(value = "") {
 
 export function statusLabel(status = "new") {
   const labels: Record<string, string> = {
-    new: "Новая",
-    called: "Позвонили",
-    confirmed: "Подтверждена",
-    cancelled: "Отменена",
+    new: "Новая бронь",
+    called: "Клиенту позвонили",
+    confirmed: "Бронь подтверждена",
+    cancelled: "Бронь отменена",
   };
 
   return labels[status] || status;
@@ -61,8 +67,7 @@ export function formatReservation(payload: ReservationPayload) {
   const date = payload.date || parsed.date;
   const time = parsed.time;
   const id = payload.id ? `#${payload.id}` : "";
-  const status =
-    payload.status && payload.status !== "new" ? `\nСтатус: ${statusLabel(payload.status)}` : "";
+  const status = payload.status && payload.status !== "new" ? statusSuffix(payload.status) : "";
 
   const lines = [
     `🍽 Новая бронь ${id}`.trim(),
@@ -165,6 +170,7 @@ export async function editTelegramReservationMessage(
     throw new Error("Telegram credentials are not configured");
   }
 
+  const isProcessed = Boolean(payload.status && payload.status !== "new");
   const response = await fetch(`https://api.telegram.org/bot${token}/editMessageText`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -172,7 +178,7 @@ export async function editTelegramReservationMessage(
       chat_id: chatId,
       message_id: payload.messageId,
       text: formatReservation(payload),
-      reply_markup: telegramButtons(payload.id),
+      reply_markup: isProcessed ? emptyTelegramKeyboard : telegramButtons(payload.id),
     }),
   });
 
@@ -181,12 +187,7 @@ export async function editTelegramReservationMessage(
   }
 }
 
-export async function editTelegramCallbackMessage(
-  messageId: number,
-  text: string,
-  status: string,
-  reservationId?: number,
-) {
+export async function editTelegramCallbackMessage(messageId: number, text: string, status: string) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
 
@@ -201,7 +202,7 @@ export async function editTelegramCallbackMessage(
       chat_id: chatId,
       message_id: messageId,
       text: withStatus(text, status),
-      reply_markup: telegramButtons(reservationId),
+      reply_markup: emptyTelegramKeyboard,
     }),
   });
 
