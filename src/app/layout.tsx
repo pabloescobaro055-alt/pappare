@@ -1,0 +1,71 @@
+import type { Metadata } from "next";
+import { Cormorant_Garamond, Inter } from "next/font/google";
+import "./globals.css";
+
+const inter = Inter({
+  subsets: ["cyrillic", "latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const cormorant = Cormorant_Garamond({
+  subsets: ["cyrillic", "latin"],
+  variable: "--font-cormorant",
+  weight: ["500", "600", "700"],
+  display: "swap",
+});
+
+export const metadata: Metadata = {
+  metadataBase: new URL("https://pappare.ru"),
+  title: {
+    default: "Pappare Italiano | Итальянская траттория в Иркутске",
+    template: "%s",
+  },
+  description:
+    "Pappare Italiano - уютная современная итальянская траттория в Иркутске на переулке Богданова, 4. Меню, бронь стола, контакты и афиша.",
+  applicationName: "Pappare Italiano",
+  keywords: [
+    "Pappare Italiano",
+    "итальянский ресторан Иркутск",
+    "траттория Иркутск",
+    "ресторан для ужина",
+    "итальянская кухня",
+    "Паппаре Иркутск",
+    "ресторан переулок Богданова Иркутск",
+  ],
+  robots: {
+    index: true,
+    follow: true,
+  },
+  openGraph: {
+    title: "Pappare Italiano",
+    description:
+      "Современная итальянская траттория: теплый свет, дерево, растения и дорогая простота.",
+    url: "https://pappare.ru",
+    siteName: "Pappare Italiano",
+    images: ["/assets/interior-main.png"],
+    locale: "ru_RU",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Pappare Italiano",
+    description:
+      "Современная итальянская траттория в Иркутске с теплым интерьером и атмосферой европейского вечера.",
+    images: ["/assets/interior-main.png"],
+  },
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="ru">
+      <body className={`${inter.variable} ${cormorant.variable} font-sans`}>
+        {children}
+      </body>
+    </html>
+  );
+}
