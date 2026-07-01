@@ -24,6 +24,15 @@ body {
   color: #fff;
 }
 
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 .section-pad {
   padding: 6rem 0;
 }

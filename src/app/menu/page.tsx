@@ -1,15 +1,147 @@
 import type { Metadata } from "next";
+import fs from "node:fs";
+import path from "node:path";
 
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Footer } from "@/components/footer";
 import { JsonLd } from "@/components/json-ld";
+import { MenuItemCard } from "@/components/menu-item-card";
 import { SiteNav } from "@/components/site-nav";
 import { menuGroups } from "@/data/menu";
 import { pageMetadata, restaurantJsonLd, siteUrl } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata("/menu");
 
+const dishImagesDirectory = path.join(process.cwd(), "public", "assets", "dishes");
+const supportedImageExtensions = new Set([".jpg", ".jpeg", ".png", ".webp", ".avif"]);
+const stopWords = new Set(["с", "со", "из", "и", "в", "на", "по"]);
+const excludedDishImageKeys = new Set(
+  [
+    ["main", "Салаты", "Цезарь с креветкой"],
+    ["main", "Салаты", "Цезарь с семгой"],
+    ["main", "Паста", "С томлеными щеками"],
+    ["main", "Паста", "С томлеными щечками"],
+    ["main", "Паста", "Болоньезе"],
+    ["main", "Паста", "Путанеска"],
+    ["main", "Пицца", "С курицей и грибами"],
+    ["lunch", "Салаты", "Салат с курицей и грибами"],
+    ["lunch", "Салаты", "Свекла с сыром фета"],
+    ["lunch", "Салаты", "Оливье с говядиной"],
+    ["lunch", "Горячее", "Паста с красной рыбой"],
+  ].map(([groupId, sectionTitle, itemName]) => dishImageExclusionKey(groupId, sectionTitle, itemName)),
+);
+
+type DishImage = {
+  fileName: string;
+  name: string;
+  normalizedName: string;
+  tokens: string[];
+  src: string;
+};
+
+function normalizeText(value: string) {
+  return value
+    .toLocaleLowerCase("ru-RU")
+    .replace(/ё/g, "е")
+    .replace(/([а-я])\1+/g, "$1")
+    .replace(/[^a-zа-я0-9]+/gi, " ")
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
+function dishImageExclusionKey(groupId: string, sectionTitle: string, itemName: string) {
+  return [groupId, sectionTitle, itemName].map(normalizeText).join("|");
+}
+
+function stemToken(token: string) {
+  return token.replace(/(ями|ами|ого|его|ыми|ими|ой|ый|ий|ая|ое|ые|ую|ью|ия|ей|ам|ям|ом|ем|ах|ях|ов|ев|а|я|ы|и|е|у|ю|ь)$/i, "");
+}
+
+function getTokens(value: string) {
+  return normalizeText(value)
+    .split(" ")
+    .filter((token) => token && !stopWords.has(token))
+    .map(stemToken)
+    .filter(Boolean);
+}
+
+function isTokenMatch(left: string, right: string) {
+  return left === right || (Math.min(left.length, right.length) >= 4 && (left.startsWith(right) || right.startsWith(left)));
+}
+
+function buildDishImageIndex() {
+  if (!fs.existsSync(dishImagesDirectory)) {
+    return [];
+  }
+
+  return fs
+    .readdirSync(dishImagesDirectory)
+    .filter((fileName) => supportedImageExtensions.has(path.extname(fileName).toLocaleLowerCase("ru-RU")))
+    .map((fileName) => {
+      const name = path.parse(fileName).name;
+
+      return {
+        fileName,
+        name,
+        normalizedName: normalizeText(name),
+        tokens: getTokens(name),
+        src: `/assets/dishes/${encodeURIComponent(fileName)}`,
+      };
+    });
+}
+
+function scoreTokens(candidateTokens: string[], imageTokens: string[]) {
+  if (!candidateTokens.length || !imageTokens.length) {
+    return 0;
+  }
+
+  let matches = 0;
+  for (const imageToken of imageTokens) {
+    if (candidateTokens.some((candidateToken) => isTokenMatch(candidateToken, imageToken))) {
+      matches += 1;
+    }
+  }
+
+  return matches / imageTokens.length;
+}
+
+function findDishImage(groupId: string, sectionTitle: string, itemName: string, images: DishImage[]) {
+  if (excludedDishImageKeys.has(dishImageExclusionKey(groupId, sectionTitle, itemName))) {
+    return undefined;
+  }
+
+  const candidates = [`${sectionTitle} ${itemName}`, itemName];
+  const exactMap = new Map(images.map((image) => [image.normalizedName, image]));
+
+  for (const candidate of candidates) {
+    const exactMatch = exactMap.get(normalizeText(candidate));
+    if (exactMatch) {
+      return exactMatch.src;
+    }
+  }
+
+  let bestMatch: DishImage | undefined;
+  let bestScore = 0;
+
+  for (const candidate of candidates) {
+    const candidateTokens = getTokens(candidate);
+
+    for (const image of images) {
+      const firstTokenMatches = Boolean(candidateTokens[0] && image.tokens[0] && isTokenMatch(candidateTokens[0], image.tokens[0]));
+      const score = scoreTokens(candidateTokens, image.tokens);
+
+      if (firstTokenMatches && score >= 0.5 && score > bestScore) {
+        bestMatch = image;
+        bestScore = score;
+      }
+    }
+  }
+
+  return bestMatch?.src;
+}
+
 export default function MenuPage() {
+  const dishImages = buildDishImageIndex();
   const menuJsonLd = {
     "@context": "https://schema.org",
     "@type": "Menu",
@@ -103,20 +235,11 @@ export default function MenuPage() {
                       </div>
                       <div className="grid gap-4 md:grid-cols-2">
                         {section.items.map((item) => (
-                          <article key={`${section.id}-${item.name}`} className="rounded-lg bg-cream p-4 md:p-5">
-                            <div className="flex items-start justify-between gap-4">
-                              <h4 className="font-display text-2xl font-semibold leading-tight">
-                                {item.name}
-                              </h4>
-                              <p className="shrink-0 text-lg font-semibold text-walnut">
-                                {item.price}
-                              </p>
-                            </div>
-                            <p className="mt-2 text-sm leading-6 text-ink/62 md:mt-3 md:min-h-12">
-                              {item.description}
-                            </p>
-                            <p className="mt-3 text-sm font-medium text-ink/48 md:mt-4">{item.weight}</p>
-                          </article>
+                          <MenuItemCard
+                            key={`${section.id}-${item.name}`}
+                            item={item}
+                            imageSrc={findDishImage(group.id, section.title, item.name, dishImages)}
+                          />
                         ))}
                       </div>
                     </div>

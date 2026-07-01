@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 import { Footer } from "@/components/footer";
+import { PremiumCarousel } from "@/components/premium-carousel";
 import { ReservationForm } from "@/components/reservation-form";
 import { SocialLinks } from "@/components/social-links";
 import { Button } from "@/components/ui/button";
@@ -35,10 +36,6 @@ const gallery = [
   { src: "/assets/real-interior-table.jpg", label: "Детали стола" },
   { src: "/assets/real-interior-plant.jpg", label: "Зал у окна" },
   { src: "/assets/real-interior-light.jpg", label: "Теплый свет" },
-  { src: "/assets/interior-main.png", label: "Вечерний зал" },
-  { src: "/assets/interior-detail.png", label: "Теплая деталь" },
-  { src: "/assets/interior-wall.png", label: "Уютные столы" },
-  { src: "/assets/interior-daylight.png", label: "Светлый зал" },
 ];
 
 const contactLinks = [
@@ -266,31 +263,26 @@ function Interior() {
           title="Теплый зал, растения и итальянские детали"
           text="Фотографии зала передают главное: сюда хочется прийти на спокойный итальянский вечер."
         />
-        <div className="grid auto-rows-[220px] gap-3 sm:auto-rows-[260px] md:auto-rows-[320px] md:grid-cols-6 md:gap-4">
-          {gallery.map((item, index) => (
-            <motion.figure
-              key={item.src}
-              initial={{ opacity: 0, scale: 0.96 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.07 }}
-              className={`group relative overflow-hidden rounded-lg shadow-soft ${
-                index === 0 ? "md:col-span-4 md:row-span-2" : "md:col-span-2"
-              } ${index === 4 ? "md:col-span-3" : ""}`}
-            >
+        <PremiumCarousel
+          ariaLabel="Галерея интерьера Pappare"
+          slideClassName="w-[82vw] sm:w-[66vw] md:w-[62vw] xl:w-[58vw]"
+        >
+          {gallery.map((item) => (
+            <figure key={item.src} className="group relative aspect-[4/5] overflow-hidden rounded-lg shadow-soft sm:aspect-[5/4] lg:aspect-[16/9]">
               <Image
                 src={item.src}
                 alt={item.label}
                 fill
-                sizes="(max-width: 768px) 100vw, 33vw"
+                loading="lazy"
+                sizes="(max-width: 640px) 82vw, (max-width: 1024px) 66vw, 58vw"
                 className="object-cover transition duration-700 group-hover:scale-105"
               />
               <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/72 to-transparent p-4 text-sm text-cream md:p-5">
                 {item.label}
               </figcaption>
-            </motion.figure>
+            </figure>
           ))}
-        </div>
+        </PremiumCarousel>
       </div>
     </section>
   );
@@ -359,7 +351,10 @@ function Reviews() {
           title="Гости отмечают атмосферу"
           text="Короткие впечатления гостей и быстрый переход к карточке ресторана в 2ГИС."
         />
-        <div className="grid gap-5 md:grid-cols-3">
+        <PremiumCarousel
+          ariaLabel="Отзывы гостей Pappare"
+          slideClassName="w-[82vw] sm:w-[58vw] md:w-[42vw] lg:w-[30vw]"
+        >
           {reviews.map((review, index) => (
             <motion.article
               key={review.name}
@@ -367,7 +362,7 @@ function Reviews() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.08 }}
-              className="rounded-lg bg-cream p-5 shadow-soft md:p-7"
+              className="h-full rounded-lg bg-cream p-5 shadow-soft md:p-7"
             >
               <div className="mb-4 flex items-center justify-between md:mb-5">
                 <Quote className="text-clay" size={26} />
@@ -381,7 +376,7 @@ function Reviews() {
               <p className="mt-4 font-medium text-walnut md:mt-6">{review.name}</p>
             </motion.article>
           ))}
-        </div>
+        </PremiumCarousel>
         <div className="mt-7 flex justify-center md:mt-9">
           <Button asChild variant="ghost">
             <Link href="https://2gis.ru/irkutsk/firm/70000001110409148/tab/reviews" target="_blank">
@@ -404,14 +399,18 @@ function Team() {
           title="Наша команда"
           text="Скоро здесь появятся фотографии и истории людей, которые встречают гостей, готовят блюда и создают настроение Pappare."
         />
-        <div className="grid gap-5 md:grid-cols-3">
+        <PremiumCarousel
+          ariaLabel="Команда Pappare"
+          slideClassName="w-[82vw] sm:w-[58vw] md:w-[42vw] lg:w-[30vw]"
+        >
           {teamMembers.map((member) => (
-            <article key={member.id} className="overflow-hidden rounded-lg bg-cream shadow-soft">
+            <article key={member.id} className="h-full overflow-hidden rounded-lg bg-cream shadow-soft">
               <div className="relative aspect-[4/3]">
                 <Image
                   src={member.photo}
                   alt={member.name}
                   fill
+                  loading="lazy"
                   sizes="(max-width: 768px) 100vw, 33vw"
                   className="object-cover"
                 />
@@ -423,7 +422,7 @@ function Team() {
               </div>
             </article>
           ))}
-        </div>
+        </PremiumCarousel>
       </div>
     </section>
   );

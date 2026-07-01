@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Footer } from "@/components/footer";
 import { JsonLd } from "@/components/json-ld";
+import { PremiumCarousel } from "@/components/premium-carousel";
 import { SiteNav } from "@/components/site-nav";
 import { pageMetadata, restaurantJsonLd } from "@/lib/seo";
 
@@ -14,10 +15,6 @@ const gallery = [
   { src: "/assets/real-interior-table.jpg", title: "Стол и детали сервировки" },
   { src: "/assets/real-interior-plant.jpg", title: "Зал у окна" },
   { src: "/assets/real-interior-light.jpg", title: "Теплый свет в зале" },
-  { src: "/assets/interior-main.png", title: "Вечерний зал Pappare" },
-  { src: "/assets/interior-detail.png", title: "Теплая деталь интерьера" },
-  { src: "/assets/interior-wall.png", title: "Уютный зал с мягким светом" },
-  { src: "/assets/interior-daylight.png", title: "Светлый зал днем" },
 ];
 
 export default function InteriorPage() {
@@ -45,24 +42,24 @@ export default function InteriorPage() {
             спокойные столы у окна и мягкий свет для неспешного вечера.
           </p>
 
-          <div className="mt-8 grid auto-rows-[220px] gap-3 sm:auto-rows-[260px] md:mt-12 md:auto-rows-[340px] md:grid-cols-6 md:gap-4">
-            {gallery.map((item, index) => (
-              <figure
-                key={item.src}
-                className={`relative overflow-hidden rounded-lg shadow-soft ${
-                  index === 0 ? "md:col-span-4 md:row-span-2" : "md:col-span-2"
-                } ${index === 4 ? "md:col-span-3" : ""}`}
-              >
+          <PremiumCarousel
+            ariaLabel="Галерея интерьера Pappare"
+            className="mt-8 md:mt-12"
+            slideClassName="w-[82vw] sm:w-[66vw] md:w-[62vw] xl:w-[58vw]"
+          >
+            {gallery.map((item) => (
+              <figure key={item.src} className="group relative aspect-[4/5] overflow-hidden rounded-lg shadow-soft sm:aspect-[5/4] lg:aspect-[16/9]">
                 <Image
                   src={item.src}
                   alt={item.title}
                   fill
-                  sizes="(max-width: 768px) 100vw, 40vw"
-                  className="object-cover"
+                  loading="lazy"
+                  sizes="(max-width: 640px) 82vw, (max-width: 1024px) 66vw, 58vw"
+                  className="object-cover transition duration-700 group-hover:scale-105"
                 />
               </figure>
             ))}
-          </div>
+          </PremiumCarousel>
         </div>
       </section>
       <Footer />

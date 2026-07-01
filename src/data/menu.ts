@@ -482,24 +482,6 @@ export const barMenuSections: MenuSection[] = [
       },
     ],
   },
-  {
-    id: "bar-cocktails",
-    title: "Коктейли",
-    intro: "Раздел подготовлен для коктейльной карты.",
-    items: [],
-  },
-  {
-    id: "bar-wine",
-    title: "Вино",
-    intro: "Раздел подготовлен для винной карты.",
-    items: [],
-  },
-  {
-    id: "bar-spirits",
-    title: "Крепкий алкоголь",
-    intro: "Раздел подготовлен для крепкого алкоголя.",
-    items: [],
-  },
 ];
 
 export const kidsMenuSections: MenuSection[] = [

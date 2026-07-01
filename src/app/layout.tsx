@@ -24,6 +24,13 @@ export const metadata: Metadata = {
   description:
     "Pappare Italiano - уютная современная итальянская траттория в Иркутске на переулке Богданова, 4. Меню, бронь стола, контакты и афиша.",
   applicationName: "Pappare Italiano",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
   keywords: [
     "Pappare Italiano",
     "итальянский ресторан Иркутск",
