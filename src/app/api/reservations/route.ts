@@ -102,6 +102,49 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // A relay can deliver notifications when the web server cannot reach Telegram directly.
+  const relayUrl = process.env.RESERVATION_RELAY_URL?.trim();
+  if (relayUrl) {
+    try {
+      const relayResponse = await fetch(relayUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Forwarded-For": ip,
+        },
+        body: JSON.stringify({ ...payload, company: "", submittedAt }),
+        cache: "no-store",
+        signal: AbortSignal.timeout(15000),
+      });
+      const relayResult = (await relayResponse.json().catch(() => null)) as {
+        ok?: boolean;
+        message?: string;
+      } | null;
+
+      if (relayResponse.ok && relayResult?.ok) {
+        return NextResponse.json({
+          ok: true,
+          message: "Спасибо! Мы получили вашу заявку и свяжемся с вами для подтверждения бронирования.",
+        });
+      }
+
+      console.error("Reservation relay failed", relayResponse.status, relayResult?.message);
+      return NextResponse.json(
+        {
+          ok: false,
+          message: relayResult?.message || "Не удалось отправить заявку. Пожалуйста, позвоните нам.",
+        },
+        { status: relayResponse.status >= 400 ? relayResponse.status : 502 },
+      );
+    } catch (error) {
+      console.error("Reservation relay request failed", error);
+      return NextResponse.json(
+        { ok: false, message: "Не удалось отправить заявку. Пожалуйста, позвоните нам." },
+        { status: 502 },
+      );
+    }
+  }
+
   let reservation: ReservationPayload & { id?: number };
 
   if (isDatabaseConfigured()) {

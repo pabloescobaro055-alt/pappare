@@ -30,6 +30,12 @@ The SQL migration is available in `db/reservations.sql`.
 
 ## Telegram
 
+If the VPS cannot reach `api.telegram.org:443`, set
+`RESERVATION_RELAY_URL=https://pappare.vercel.app/api/reservations` in the VPS `.env`.
+The existing Vercel deployment accepts the reservation and sends its Telegram notification.
+Do not set this variable on the Vercel deployment, or it would forward requests to itself.
+Verify the VPS can reach `pappare.vercel.app` before enabling the relay.
+
 Required Vercel environment variables:
 
 - `NOTIFICATION_CHANNEL=telegram`
