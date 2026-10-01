@@ -11,6 +11,17 @@ import { pageMetadata, restaurantJsonLd } from "@/lib/seo";
 export const metadata: Metadata = pageMetadata("/interior");
 
 const gallery = [
+  { src: "/assets/new-hall/hall-1.jpg", title: "Зал Pappare: общий вид" },
+  { src: "/assets/new-hall/hall-2.jpg", title: "Зал Pappare: столы и растения" },
+  { src: "/assets/new-hall/hall-3.jpg", title: "Зал Pappare у окна" },
+  { src: "/assets/new-hall/hall-4.jpg", title: "Уютная часть зала Pappare" },
+  { src: "/assets/new-hall/hall-5.jpg", title: "Столы у окна Pappare" },
+  { src: "/assets/gallery-hall-wide.webp", title: "Общий зал Pappare" },
+  { src: "/assets/gallery-hall-sun-table.webp", title: "Солнечный стол у окна" },
+  { src: "/assets/gallery-hall-window-table.webp", title: "Теплый свет зала" },
+  { src: "/assets/gallery-hall-curtain-table.webp", title: "Уютный уголок зала" },
+  { src: "/assets/gallery-veranda-detail.webp", title: "Детали летней веранды" },
+  { src: "/assets/gallery-veranda-table.webp", title: "Летняя веранда" },
   { src: "/assets/real-interior-hall.jpg", title: "Реальный зал Pappare" },
   { src: "/assets/real-interior-table.jpg", title: "Стол и детали сервировки" },
   { src: "/assets/real-interior-plant.jpg", title: "Зал у окна" },
@@ -19,7 +30,7 @@ const gallery = [
 
 export default function InteriorPage() {
   return (
-    <main className="min-h-screen bg-cream text-ink">
+    <main className="theme-page min-h-screen bg-cream text-ink">
       <SiteNav />
       <Breadcrumbs
         items={[

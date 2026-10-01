@@ -40,15 +40,15 @@ export function MenuItemCard({ item, imageSrc }: MenuItemCardProps) {
     <>
       <article
         className={cn(
-          "rounded-lg bg-cream p-4 md:p-5",
+          "menu-item-card rounded-lg bg-cream p-4 md:p-5",
           imageSrc && "grid gap-4 sm:grid-cols-[112px_1fr] sm:items-start",
         )}
       >
         <div className={cn("flex items-start justify-between gap-4", imageSrc && "sm:col-start-2")}>
-          <h4 className="font-display text-2xl font-semibold leading-tight">
+          <h4 className="menu-item-title font-display text-2xl font-semibold leading-tight">
             {item.name}
           </h4>
-          <p className="shrink-0 text-lg font-semibold text-walnut">
+          <p className="menu-item-price shrink-0 text-lg font-semibold text-walnut">
             {item.price}
           </p>
         </div>
@@ -58,7 +58,7 @@ export function MenuItemCard({ item, imageSrc }: MenuItemCardProps) {
             type="button"
             aria-label={`Открыть фото блюда ${item.name}`}
             onClick={() => setIsOpen(true)}
-            className="group relative h-44 w-full cursor-zoom-in overflow-hidden rounded-xl bg-linen sm:col-start-1 sm:row-span-3 sm:row-start-1 sm:h-[112px] sm:w-[112px] sm:shrink-0"
+            className="menu-item-image group relative h-44 w-full cursor-zoom-in overflow-hidden rounded-xl bg-linen sm:col-start-1 sm:row-span-3 sm:row-start-1 sm:h-[112px] sm:w-[112px] sm:shrink-0"
           >
             <Image
               src={imageSrc}
@@ -77,10 +77,10 @@ export function MenuItemCard({ item, imageSrc }: MenuItemCardProps) {
           </button>
         )}
 
-        <p className={cn("text-sm leading-6 text-ink/62 md:min-h-12", imageSrc ? "sm:col-start-2" : "mt-2 md:mt-3")}>
+        <p className={cn("menu-item-description text-sm leading-6 text-ink/62 md:min-h-12", imageSrc ? "sm:col-start-2" : "mt-2 md:mt-3")}>
           {item.description}
         </p>
-        <p className={cn("text-sm font-medium text-ink/48", imageSrc ? "sm:col-start-2" : "mt-3 md:mt-4")}>
+        <p className={cn("menu-item-weight text-sm font-medium text-ink/48", imageSrc ? "sm:col-start-2" : "mt-3 md:mt-4")}>
           {item.weight}
         </p>
       </article>

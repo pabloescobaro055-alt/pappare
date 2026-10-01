@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 import fs from "node:fs";
 import path from "node:path";
+import { Suspense } from "react";
 
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Footer } from "@/components/footer";
 import { JsonLd } from "@/components/json-ld";
 import { MenuItemCard } from "@/components/menu-item-card";
+import { MenuThemeSync } from "@/components/menu-theme-sync";
 import { SiteNav } from "@/components/site-nav";
-import { menuGroups } from "@/data/menu";
+import { currentMenuGroups } from "@/data/current-menu";
 import { pageMetadata, restaurantJsonLd, siteUrl } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata("/menu");
@@ -140,7 +142,10 @@ function findDishImage(groupId: string, sectionTitle: string, itemName: string, 
   return bestMatch?.src;
 }
 
-export default function MenuPage() {
+export default async function MenuPage({ searchParams }: { searchParams: Promise<{ mode?: string }> }) {
+  const { mode } = await searchParams;
+  const visibleIds = mode === "morning" ? ["breakfast", "lunch", "kids"] : mode === "night" ? ["evening"] : ["main", "kids"];
+  const menuGroups = currentMenuGroups.filter((group) => visibleIds.includes(group.id));
   const dishImages = buildDishImageIndex();
   const menuJsonLd = {
     "@context": "https://schema.org",
@@ -169,7 +174,10 @@ export default function MenuPage() {
   };
 
   return (
-    <main className="min-h-screen bg-cream text-ink">
+    <main className="theme-page menu-page min-h-screen bg-cream text-ink">
+      <Suspense fallback={null}>
+        <MenuThemeSync />
+      </Suspense>
       <SiteNav />
       <Breadcrumbs
         items={[
@@ -186,11 +194,10 @@ export default function MenuPage() {
             Меню
           </p>
           <h1 className="mt-3 max-w-4xl font-display text-4xl font-semibold leading-tight md:mt-4 md:text-7xl">
-            Итальянская кухня для неспешного вечера
+            {mode === "morning" ? "Утро в Pappare" : mode === "night" ? "Вечернее меню" : "Основное меню Pappare"}
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-ink/68 md:mt-6 md:text-lg md:leading-8">
-            Закуски к вину, салаты, паста, пицца, горячие блюда, десерты и
-            барная карта. Все позиции удобно смотреть прямо на сайте.
+            {mode === "morning" ? "Завтраки, обеденное предложение и детское меню." : mode === "night" ? "Бургеры, закуски и напитки для вечера." : "Основное и детское меню. Состав и цены обновлены по актуальным макетам."}
           </p>
 
           <nav className="mt-6 flex gap-2 overflow-x-auto pb-2 md:mt-10" aria-label="Разделы меню">

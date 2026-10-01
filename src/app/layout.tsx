@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Inter } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
+import { YandexMetrika } from "@/components/yandex-metrika";
 
 const inter = Inter({
   subsets: ["cyrillic", "latin"],
@@ -71,7 +73,10 @@ export default function RootLayout({
   return (
     <html lang="ru">
       <body className={`${inter.variable} ${cormorant.variable} font-sans`}>
-        {children}
+        <ThemeProvider>
+          <YandexMetrika />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

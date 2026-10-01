@@ -21,7 +21,7 @@ const mapLinks = [
 
 export default function ContactsPage() {
   return (
-    <main className="min-h-screen bg-cream text-ink">
+    <main className="theme-page min-h-screen bg-cream text-ink">
       <SiteNav />
       <Breadcrumbs
         items={[
@@ -79,7 +79,7 @@ export default function ContactsPage() {
             <div className="relative min-h-[280px] md:min-h-[430px]">
               <iframe
                 title="Карта Pappare Italiano"
-                src="https://yandex.ru/map-widget/v1/?ll=104.283373%2C52.285743&mode=search&oid=188785765668&ol=biz&z=17.42"
+                src={contactInfo.mapEmbedUrl}
                 className="absolute inset-0 h-full w-full border-0"
                 loading="lazy"
               />
