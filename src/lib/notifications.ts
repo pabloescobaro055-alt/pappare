@@ -9,6 +9,20 @@ export type ReservationPayload = {
   status?: string;
 };
 
+export async function sendTelegramText(text: string): Promise<boolean> {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+  if (!token || !chatId) return false;
+  const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ chat_id: chatId, text, disable_web_page_preview: true }),
+    signal: AbortSignal.timeout(8000),
+  });
+  if (!response.ok) return false;
+  return Boolean((await response.json()).ok);
+}
+
 export type NotificationResult = {
   channel: "telegram" | "max";
   ok: boolean;

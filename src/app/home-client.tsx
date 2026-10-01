@@ -10,6 +10,7 @@ import {
   Clock,
   Coffee,
   ExternalLink,
+  Film,
   GlassWater,
   MapPin,
   Moon,
@@ -53,7 +54,7 @@ const moodContent: Record<Mood, MoodContent> = {
     title: "Хорошего утра",
     description: ["Завтраки с 08:00 до 12:00.", "Панини, каши и яйца.", "Обеденное предложение по будням.", "Детское меню для маленьких гостей."],
     cta: "Посмотреть завтраки",
-    ctaHref: "/menu?mode=morning",
+    ctaHref: "/menu#breakfast",
     heroImage: "/assets/morning/morning-9.jpg",
     time: "с 08:00 до 12:00",
     accent: "text-amber",
@@ -64,7 +65,7 @@ const moodContent: Record<Mood, MoodContent> = {
     title: "Классическая Италия",
     description: ["Настоящая паста.", "Пицца из печи.", "Салаты и горячие блюда.", "Детское меню.", "Итальянское гостеприимство."],
     cta: "Посмотреть меню",
-    ctaHref: "/menu?mode=day",
+    ctaHref: "/menu#main",
     heroImage: "/assets/pappare-day-mood.webp",
     time: "с 12:00 до 16:00",
     accent: "text-olive",
@@ -75,26 +76,20 @@ const moodContent: Record<Mood, MoodContent> = {
     title: "Бар друзей",
     description: ["Крафтовое пиво.", "Горячие закуски.", "Музыка.", "Шутки.", "Хорошая компания.", "До поздней ночи."],
     cta: "Посмотреть меню",
-    ctaHref: "/menu?mode=night",
+    ctaHref: "/menu#evening",
     heroImage: "/assets/pappare-night-mood.webp",
     time: "с 18:00 до 22:00",
     accent: "text-amber",
   },
 };
 
-const morningMenu = [
-  { title: "Завтраки", text: "Панини, фокачча, каши, яйца и кофе. С 08:00 до 12:00.", icon: Coffee, href: "/menu?mode=morning#breakfast" },
-  { title: "Обеденное предложение", text: "Суп, горячее, салат и чай за 650 ₽. По будням с 12:00 до 16:00.", icon: Utensils, href: "/menu?mode=morning#lunch" },
-  { title: "Детское меню", text: "Куриный супчик, бантики, сырники и кальцоне.", icon: Sparkles, href: "/menu?mode=morning#kids" },
-];
-
-const dayMenu = [
-  { title: "Основное меню", text: "Закуски, салаты, горячее, паста, пицца и напитки.", icon: Pizza, href: "/menu?mode=day#main" },
-  { title: "Детское меню", text: "Блюда для маленьких гостей.", icon: Sparkles, href: "/menu?mode=day#kids" },
-];
-
-const nightMenu = [
-  { title: "Вечернее меню", text: "Бургеры, чимичанга, фритюр и пивная карта.", icon: GlassWater, href: "/menu?mode=night#evening" },
+const menuCards = [
+  { title: "Завтраки", text: "Панини, фокачча, каши, яйца и кофе. С 08:00 до 12:00.", icon: Coffee, href: "/menu#breakfast" },
+  { title: "Основное меню", text: "Закуски, салаты, горячее, паста и пицца.", icon: Pizza, href: "/menu#main" },
+  { title: "Бар и напитки", text: "Кофе, лимонады, коктейли, чай, пиво и сидр.", icon: GlassWater, href: "/menu#bar" },
+  { title: "Вечернее меню", text: "Бургеры, чимичанга, фритюр и пивная карта.", icon: Moon, href: "/menu#evening" },
+  { title: "Обеденное предложение", text: "Суп, горячее, салат и чай за 650 ₽. По будням с 12:00 до 16:00.", icon: Utensils, href: "/menu#lunch" },
+  { title: "Детское меню", text: "Куриный супчик, бантики, сырники и кальцоне.", icon: Sparkles, href: "/menu#kids" },
 ];
 
 const morningGallery = [2, 3, 4, 5, 6, 7, 8, 9].map((number) => ({ src: `/assets/morning/morning-${number}.jpg`, label: `Завтраки Pappare · фото ${number - 1}` }));
@@ -154,6 +149,7 @@ export default function Home() {
       {mood !== "morning" && <Siesta mood={mood} />}
       <Characters mood={mood} />
       <MenuPreview mood={mood} setMood={setMood} />
+      <CinemaPreview />
       <MoodGallery mood={mood} />
       <Reviews mood={mood} setMood={setMood} />
       <Reservation mood={mood} />
@@ -221,7 +217,7 @@ function Header({ mood }: { mood: Mood }) {
       <div className="container flex h-[4.5rem] items-center justify-between md:h-24">
         <Link href="/" className="font-display text-2xl font-semibold tracking-wide text-cream">Pappare</Link>
         <nav className="hidden items-center gap-8 text-sm uppercase tracking-[0.18em] text-cream/78 md:flex">
-          <a href="#characters">Утро / День / Вечер</a><a href="#menu">Меню</a><a href="#gallery">Галерея</a><a href="#reviews">Отзывы</a><a href="#contacts">Контакты</a>
+          <a href="#characters">Утро / День / Вечер</a><a href="#menu">Меню</a><Link href="/kino">Киноужин</Link><a href="#gallery">Галерея</a><a href="#reviews">Отзывы</a><a href="#contacts">Контакты</a>
         </nav>
         <Button asChild variant="outline" className={mood !== "night" ? "hidden border-cream/75 bg-cream/8 md:inline-flex" : "hidden md:inline-flex"}><Link href="#reservation">Забронировать</Link></Button>
       </div>
@@ -300,12 +296,11 @@ function CharacterCard({ mood, title, icon: Icon, items, active }: { mood: Mood;
 }
 
 function MenuPreview({ mood, setMood }: { mood: Mood; setMood: (mood: Mood) => void }) {
-  const items = mood === "morning" ? morningMenu : mood === "day" ? dayMenu : nightMenu;
   return (
-    <section id="menu" className={`section-pad ${mood !== "night" ? "bg-cream" : "bg-[#1C1B17]"}`}><div className="container"><SectionTitle eyebrow="Меню" title="Меню на каждый момент дня" text="Выберите время, чтобы увидеть подходящие блюда и актуальные цены." mood={mood} />
+    <section id="menu" className={`section-pad ${mood !== "night" ? "bg-cream" : "bg-[#1C1B17]"}`}><div className="container"><SectionTitle eyebrow="Меню" title="Всё меню Pappare" text="Завтраки, основное меню, бар, вечерние блюда, обед и детское меню доступны в каждом режиме сайта." mood={mood} />
       <div className="mx-auto mb-8 flex w-fit rounded-full border border-current/10 p-1">{([ ["morning", "Утро"], ["day", "День"], ["night", "Вечер"] ] as const).map(([id, label]) => <button key={id} type="button" onClick={() => setMood(id)} aria-pressed={mood === id} className={`rounded-full px-4 py-3 text-sm font-medium transition sm:px-5 ${mood === id ? mood === "night" ? "bg-amber text-ink" : "bg-ink text-cream" : "text-current/62"}`}>{label}</button>)}</div>
-      <AnimatePresence mode="wait"><motion.div key={mood} initial={{ opacity: 0, x: mood !== "night" ? -30 : 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: mood !== "night" ? 30 : -30 }} transition={sectionTransition} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{items.map((item) => <MenuMoodCard key={item.title} mood={mood} item={item} />)}</motion.div></AnimatePresence>
-      <div className="mt-8 flex justify-center"><Button asChild className={mood !== "night" ? "bg-clay text-white hover:bg-walnut" : "bg-amber text-ink hover:bg-cream"}><Link href={`/menu?mode=${mood}`}>Посмотреть меню<ArrowUpRight size={18} /></Link></Button></div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{menuCards.map((item) => <MenuMoodCard key={item.title} mood={mood} item={item} />)}</div>
+      <div className="mt-8 flex justify-center"><Button asChild className={mood !== "night" ? "bg-clay text-white hover:bg-walnut" : "bg-amber text-ink hover:bg-cream"}><Link href="/menu">Посмотреть всё меню<ArrowUpRight size={18} /></Link></Button></div>
     </div></section>
   );
 }
@@ -313,6 +308,15 @@ function MenuPreview({ mood, setMood }: { mood: Mood; setMood: (mood: Mood) => v
 function MenuMoodCard({ mood, item }: { mood: Mood; item: { title: string; text: string; icon: IconType; href: string } }) {
   const Icon = item.icon;
   return <motion.article whileHover={{ y: -5, scale: 1.015 }} className={`rounded-[1.5rem] border p-6 transition ${mood !== "night" ? "border-walnut/10 bg-linen/42 shadow-soft" : "border-amber/15 bg-cream/[0.055] shadow-[0_24px_80px_rgba(0,0,0,.2)]"}`}><Icon className={mood !== "night" ? "text-olive" : "text-amber"} size={28} /><h3 className="mt-5 font-display text-3xl font-semibold">{item.title}</h3><p className={`mt-3 leading-7 ${mood !== "night" ? "text-ink/64" : "text-cream/64"}`}>{item.text}</p><Link href={item.href} className="mt-5 inline-flex items-center gap-1 text-sm font-semibold underline underline-offset-4">Смотреть позиции <ArrowUpRight size={16} /></Link></motion.article>;
+}
+
+function CinemaPreview() {
+  return <section className="section-pad bg-[#171c15] text-cream" aria-labelledby="cinema-preview-title"><div className="container">
+    <Link href="/kino" className="group grid overflow-hidden rounded-[1.75rem] border border-amber/20 bg-[#22291e] shadow-[0_24px_80px_rgba(0,0,0,.22)] md:grid-cols-[0.85fr_1.15fr]">
+      <div className="relative min-h-64 overflow-hidden md:min-h-80"><Image src="/assets/pappare-night-mood.webp" alt="Вечерняя атмосфера Pappare" fill sizes="(max-width: 768px) 100vw, 45vw" className="object-cover transition duration-700 group-hover:scale-105" /><div className="absolute inset-0 bg-gradient-to-t from-[#171c15]/55 to-transparent md:bg-gradient-to-r" /></div>
+      <div className="flex flex-col justify-center p-7 sm:p-10 md:p-12"><p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.24em] text-amber"><Film size={18} /> Киноужины Pappare</p><h2 id="cinema-preview-title" className="mt-5 font-display text-4xl font-semibold leading-tight sm:text-5xl">Кино, которое можно попробовать</h2><p className="mt-4 max-w-xl leading-7 text-cream/72">История на экране продолжается за вашим столом. Загляните в раздел киноужинов и посмотрите, как устроен вечер.</p><span className="mt-7 inline-flex w-fit items-center gap-2 border-b border-amber pb-1 text-sm font-semibold text-amber">Открыть киноужины <ArrowUpRight size={18} /></span><p className="mt-4 text-xs text-cream/50">Сейчас раздел работает в демонстрационном режиме: продажи и оплата не открыты.</p></div>
+    </Link>
+  </div></section>;
 }
 
 function MoodGallery({ mood }: { mood: Mood }) {

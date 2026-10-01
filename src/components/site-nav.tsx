@@ -19,7 +19,8 @@ export function SiteNav({ dark = false }: { dark?: boolean }) {
           Pappare
         </Link>
         <nav className={`hidden items-center gap-7 text-sm ${muted} md:flex`}>
-          <Link href={`/menu?mode=${mood}`}>Меню</Link>
+          <Link href="/menu">Меню</Link>
+          <Link href="/kino">Киноужин</Link>
           <Link href="/interior">Интерьер</Link>
           <Link href="/contacts">Контакты</Link>
         </nav>

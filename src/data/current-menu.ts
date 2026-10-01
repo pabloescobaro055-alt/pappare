@@ -86,6 +86,9 @@ const main = [
 Карбонара|550|470 г
 Пицца с креветками|790|≈ 450 г
 Пицца с курицей и грибами|570|≈ 480 г`),
+];
+
+const bar = [
   section("coffee", "Кофе", `Эспрессо|95|20 мл
 Доппио|190|40 мл
 Американо|190|250 мл
@@ -178,8 +181,9 @@ const evening = [
 
 export const currentMenuGroups: MenuGroup[] = [
   { id: "breakfast", title: "Завтраки", description: "Каждый день с 08:00 до 12:00.", sections: breakfast },
-  { id: "lunch", title: "Обеденное предложение", description: "По будням с 12:00 до 16:00.", sections: lunch },
-  { id: "main", title: "Основное меню", description: "Актуальные блюда и напитки.", sections: main },
-  { id: "kids", title: "Детское меню", description: "Блюда для маленьких гостей.", sections: kids },
+  { id: "main", title: "Основное меню", description: "Закуски, салаты, горячее, паста и пицца.", sections: main },
+  { id: "bar", title: "Бар и напитки", description: "Кофе, лимонады, коктейли, чай, пиво и сидр.", sections: bar },
   { id: "evening", title: "Вечернее меню", description: "Бургеры, закуски и пивная карта.", sections: evening },
+  { id: "lunch", title: "Обеденное предложение", description: "По будням с 12:00 до 16:00.", sections: lunch },
+  { id: "kids", title: "Детское меню", description: "Блюда для маленьких гостей.", sections: kids },
 ];

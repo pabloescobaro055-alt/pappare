@@ -142,10 +142,8 @@ function findDishImage(groupId: string, sectionTitle: string, itemName: string, 
   return bestMatch?.src;
 }
 
-export default async function MenuPage({ searchParams }: { searchParams: Promise<{ mode?: string }> }) {
-  const { mode } = await searchParams;
-  const visibleIds = mode === "morning" ? ["breakfast", "lunch", "kids"] : mode === "night" ? ["evening"] : ["main", "kids"];
-  const menuGroups = currentMenuGroups.filter((group) => visibleIds.includes(group.id));
+export default function MenuPage() {
+  const menuGroups = currentMenuGroups;
   const dishImages = buildDishImageIndex();
   const menuJsonLd = {
     "@context": "https://schema.org",
@@ -194,18 +192,18 @@ export default async function MenuPage({ searchParams }: { searchParams: Promise
             Меню
           </p>
           <h1 className="mt-3 max-w-4xl font-display text-4xl font-semibold leading-tight md:mt-4 md:text-7xl">
-            {mode === "morning" ? "Утро в Pappare" : mode === "night" ? "Вечернее меню" : "Основное меню Pappare"}
+            Всё меню Pappare
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-ink/68 md:mt-6 md:text-lg md:leading-8">
-            {mode === "morning" ? "Завтраки, обеденное предложение и детское меню." : mode === "night" ? "Бургеры, закуски и напитки для вечера." : "Основное и детское меню. Состав и цены обновлены по актуальным макетам."}
+            Завтраки, основное меню, бар, вечернее и обеденное предложения и блюда для детей. Все разделы доступны в любое время просмотра сайта.
           </p>
 
-          <nav className="mt-6 flex gap-2 overflow-x-auto pb-2 md:mt-10" aria-label="Разделы меню">
+          <nav className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6 md:mt-10" aria-label="Разделы меню">
             {menuGroups.map((group) => (
               <a
                 key={group.id}
                 href={`#${group.id}`}
-                className="whitespace-nowrap rounded-full border border-walnut/20 bg-linen/60 px-4 py-2.5 text-sm font-medium text-ink/72 transition hover:border-clay hover:text-clay md:px-5 md:py-3"
+                className="flex min-h-12 items-center justify-center rounded-full border border-walnut/20 bg-linen/60 px-3 py-2.5 text-center text-sm font-medium leading-tight text-ink/72 transition hover:border-clay hover:text-clay md:px-4 md:py-3"
               >
                 {group.title}
               </a>

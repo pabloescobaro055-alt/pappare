@@ -31,6 +31,7 @@ export function Footer() {
             </Link>
           </div>
           <div className="md:justify-self-end">
+            <Link className="mb-4 block text-sm text-cream/72 transition hover:text-amber" href="/kino">Киноужины</Link>
             <SocialLinks light />
           </div>
         </div>
