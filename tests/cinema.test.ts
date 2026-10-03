@@ -12,8 +12,12 @@ import {preparePayment,verifySignature} from '../src/lib/cinema/payments';
 
 const event=movieEvents[0];
 // Keep the test event bookable even after its public demonstration date passes.
-event.date='2099-09-25';
-event.startsAt='2099-09-25T19:30:00+08:00';
+event.date='2099-10-04';
+event.startsAt='2099-10-04T18:00:00+08:00';
+event.status='active';
+event.saleStatus='open';
+event.pricePerSeat=3000;
+movieEvents.push({...event,id:'test-closed-event',slug:'test-closed-event',status:'upcoming',saleStatus:'closed'});
 function body(seats:string[],extra={}){return {eventId:event.id,seatIds:seats,name:'Тестовый гость',phone:'+70000000000',requestKey:randomUUID(),...extra};}
 async function releaseAll(){await transaction(async db=>{await expire(db,Date.now()+3600000);});}
 test('Cinema: pricing, concurrency, expiry, independent events and payments',async t=>{
@@ -37,7 +41,7 @@ test('Cinema: pricing, concurrency, expiry, independent events and payments',asy
   await t.test('closed event cannot be booked; historical events detected',async()=>{await assert.rejects(createOrder(body([seatIds[0]],{eventId:movieEvents[1].id}),'closed'));assert.equal(isPast({...event,startsAt:'2020-01-01T00:00:00Z'}),true);});
   await t.test('demo payment, duplicate callbacks, sold seat not selectable',async()=>{const order=await preparePayment(await createOrder(body([seatIds[1]]),'pay'));assert.equal(order.payment.mode,'demo');await assert.rejects(changeStatus(order.id,'paid',1));const paid=await changeStatus(order.id,'paid',3000);assert.equal(paid.status,'paid');assert.equal((await changeStatus(order.id,'paid',3000)).status,'paid');await assert.rejects(createOrder(body([seatIds[1]]),'steal'));});
   await t.test('manual claim does not mark seats sold',async()=>{const o=await createOrder(body([seatIds[2]]),'manual');await changeStatus(o.id,'payment_check_required');assert.equal((await seatsFor(event.id)).find(s=>s.id===seatIds[2])?.status,'held');await releaseAll();});
-  await t.test('Telegram text uses correct event and total',async()=>{const o=await createOrder(body([seatIds[3],seatIds[4]]),'telegram');const text=notificationText(o);assert.match(text,/Рататуй/);assert.match(text,/25 сентября/);assert.match(text,/6\s000 ₽/);assert.match(text,/Количество: 2/);await releaseAll();});
+  await t.test('Telegram text uses correct event and total',async()=>{const o=await createOrder(body([seatIds[3],seatIds[4]]),'telegram');const text=notificationText(o);assert.match(text,/Ешь, молись, люби/);assert.match(text,/4 октября/);assert.match(text,/6\s000 ₽/);assert.match(text,/Количество: 2/);await releaseAll();});
   await t.test('webhook HMAC rejects forged or stale signatures',()=>{process.env.PAYMENT_WEBHOOK_SECRET='test-secret';const raw='{"orderId":"test"}',timestamp=String(Date.now());const signature=createHmac('sha256','test-secret').update(`${timestamp}.${raw}`).digest('hex');assert.equal(verifySignature(raw,signature,timestamp),true);assert.equal(verifySignature(raw+'x',signature,timestamp),false);assert.equal(verifySignature(raw,signature,'0'),false);});
   await t.test('persisted rate limiting rejects ninth order',async()=>{for(let i=0;i<8;i++){await createOrder(body([seatIds[5]]),'rate');await releaseAll();}await assert.rejects(createOrder(body([seatIds[5]]),'rate'),/Слишком много/);});
 });

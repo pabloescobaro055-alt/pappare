@@ -4,23 +4,22 @@ export type MovieEvent = {
   description: string; menuDescription: string; pricePerSeat: number;
   status: 'active' | 'upcoming' | 'finished' | 'sold_out'; saleStatus: 'open' | 'closed';
   venue: string; demo: boolean; duration?: string; age?: string;
+  menuCourses?: { category: string; name: string }[];
 };
-// DEMO DATA: replace here before opening real sales. Images are restaurant placeholders.
 export const movieEvents: MovieEvent[] = [
-  { id: 'demo-ratatouille-20260925', slug: 'ratatouille', title: 'Рататуй',
-    date: '2026-09-25', time: '19:30', startsAt: '2026-09-25T19:30:00+08:00',
-    image: '/assets/gallery-hall-sun-table.webp', heroImage: '/assets/pappare-night-mood.webp',
-    shortDescription: 'Париж, маленькая кухня и большая любовь к еде.',
-    description: 'Есть фильмы, после которых хочется готовить. А есть вечера, когда всё уже приготовлено для вас. Смотрим историю Реми, узнаём знакомые вкусы и наслаждаемся неспешным ужином.',
-    menuDescription: 'Несколько подач, вдохновлённых атмосферой фильма. Точное меню появится после анонса вечера. Если у вас есть аллергии, свяжитесь с рестораном до покупки.',
-    pricePerSeat: 3000, status: 'active', saleStatus: 'open', venue: 'PAPPARE · Иркутск', demo: true },
-  { id: 'demo-panda-20261009', slug: 'kung-fu-panda', title: 'Кунг-фу Панда',
-    date: '2026-10-09', time: '19:30', startsAt: '2026-10-09T19:30:00+08:00',
-    image: '/assets/gallery-hall-window-table.webp', heroImage: '/assets/gallery-hall-wide.webp',
-    shortDescription: 'Секретного ингредиента не существует. Кроме хорошей компании.',
-    description: 'Тёплый вечер с любимой историей и блюдами, которые продолжают её за вашим столом.',
-    menuDescription: 'Гастрономическая программа готовится. Состав и число подач уточним ближе к анонсу.',
-    pricePerSeat: 3000, status: 'upcoming', saleStatus: 'closed', venue: 'PAPPARE · Иркутск', demo: true },
+  { id: 'test-eat-pray-love-20261004', slug: 'eat-pray-love', title: 'Ешь, молись, люби',
+    date: '2026-10-04', time: '18:00', startsAt: '2026-10-04T18:00:00+08:00',
+    image: '/assets/eat-pray-love-poster.png', heroImage: '/assets/eat-pray-love-poster.png',
+    shortDescription: 'Тестовый просмотр фильма и ужин в итальянском настроении.',
+    description: '4 октября в 18:00 смотрим «Ешь, молись, люби» в Pappare. К фильму подготовили меню из четырёх подач.',
+    menuDescription: 'Меню вечера по афише Pappare:',
+    menuCourses: [
+      { category: 'Аперитив', name: 'Коктейль лимончелло' },
+      { category: 'Паста', name: 'Спагетти all’Amatriciana' },
+      { category: 'Пицца', name: 'Маргарита из Неаполя' },
+      { category: 'Горячее', name: 'Стейк из фермерской индейки с соусом вишневый демиглас' },
+    ],
+    pricePerSeat: 0, status: 'upcoming', saleStatus: 'closed', venue: 'PAPPARE · Иркутск', demo: true },
 ];
 export const cinemaCopy = {
   intro: 'Вечер, в котором кино выходит за пределы экрана. Мы подаём блюда, связанные со сценами и атмосферой фильма, — а вы пробуете историю на вкус.',

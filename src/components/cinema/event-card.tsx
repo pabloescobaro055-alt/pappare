@@ -9,9 +9,9 @@ export function Availability({event}:{event:MovieEvent}) {
   return <span className="availability">{count===null?'Наличие мест уточняется':count===0?'Все места заняты':`Свободно ${count} из 26 мест`}</span>;
 }
 export function EventCard({event}:{event:MovieEvent}) {return <article className="cinema-card">
-  <Link href={`/kino/${event.slug}`} className="card-image"><img src={event.image} alt="Атмосфера PAPPARE — временное изображение события"/><span>{isPast(event)?'Пример':canBook(event)?'Бронирование открыто':'Скоро'}</span><i><ArrowUpRight/></i></Link>
-  <div className="card-meta">{dateLabel(event)} <span>·</span> {event.time}<small>DEMO</small></div>
+  <Link href={`/kino/${event.slug}`} className="card-image"><img src={event.image} alt={`Афиша фильма «${event.title}»`}/><span>{isPast(event)?'Прошедший просмотр':canBook(event)?'Бронирование открыто':'Тестовый просмотр'}</span><i><ArrowUpRight/></i></Link>
+  <div className="card-meta">{dateLabel(event)} <span>·</span> {event.time}<small>КИНОУЖИН</small></div>
   <Link href={`/kino/${event.slug}`}><h3>{event.title}</h3></Link><p>{event.shortDescription}</p>
-  <div className="card-bottom"><span>{money(event.pricePerSeat)} <small>/ гость</small></span>{canBook(event)?<Link href={`/kino/${event.slug}/seats`}>Выбрать места ↗</Link>:<span className="muted">{isPast(event)?'Демонстрационный вечер':'Скоро в продаже'}</span>}</div>
+  <div className="card-bottom">{event.pricePerSeat>0?<span>{money(event.pricePerSeat)} <small>/ гость</small></span>:<span>Меню из четырёх подач</span>}{canBook(event)?<Link href={`/kino/${event.slug}/seats`}>Выбрать места ↗</Link>:<Link href={`/kino/${event.slug}`}>Меню вечера ↗</Link>}</div>
   {canBook(event)&&<Availability event={event}/>}
 </article>;}
