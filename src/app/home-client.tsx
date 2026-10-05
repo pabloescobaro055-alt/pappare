@@ -66,7 +66,7 @@ const moodContent: Record<Mood, MoodContent> = {
     description: ["Настоящая паста.", "Пицца из печи.", "Салаты и горячие блюда.", "Детское меню.", "Итальянское гостеприимство."],
     cta: "Посмотреть меню",
     ctaHref: "/menu#main",
-    heroImage: "/assets/pappare-day-mood.webp",
+    heroImage: "/assets/pappare-day-v2.png",
     time: "с 12:00 до 18:00",
     accent: "text-olive",
   },
@@ -77,7 +77,7 @@ const moodContent: Record<Mood, MoodContent> = {
     description: ["Крафтовое пиво.", "Горячие закуски.", "Музыка.", "Шутки.", "Хорошая компания.", "До поздней ночи."],
     cta: "Посмотреть меню",
     ctaHref: "/menu#evening",
-    heroImage: "/assets/pappare-night-mood.webp",
+    heroImage: "/assets/pappare-cinema-evening-v2.png",
     time: "с 18:00 до 22:00",
     accent: "text-amber",
   },
@@ -97,7 +97,7 @@ const newHallGallery = [1, 2, 3, 4, 5].map((number) => ({ src: `/assets/new-hall
 
 const dayGallery = [
   ...newHallGallery,
-  { src: "/assets/pappare-day-mood.webp", label: "Дневной зал" },
+  { src: "/assets/pappare-day-v2.png", label: "Дневной зал" },
   { src: "/assets/gallery-hall-wide.webp", label: "Общий зал" },
   { src: "/assets/gallery-hall-sun-table.webp", label: "Солнечный стол" },
   { src: "/assets/gallery-hall-window-table.webp", label: "Свет у окна" },
@@ -106,7 +106,7 @@ const dayGallery = [
 
 const nightGallery = [
   ...newHallGallery,
-  { src: "/assets/pappare-night-mood.webp", label: "Вечерний бар" },
+  { src: "/assets/pappare-cinema-evening-v2.png", label: "Киноужин при свечах" },
   { src: "/assets/real-interior-hall.jpg", label: "Теплый свет" },
   { src: "/assets/real-interior-light.jpg", label: "Детали освещения" },
   { src: "/assets/gallery-veranda-table.webp", label: "Вечерняя веранда" },
@@ -170,7 +170,7 @@ function Hero({ mood, setMood, active }: { mood: Mood; setMood: (mood: Mood) => 
           transition={sectionTransition}
           className="absolute inset-0"
         >
-          <Image src={active.heroImage} alt={mood === "morning" ? "Завтрак в Pappare" : mood === "day" ? "Дневной интерьер Pappare" : "Вечерний бар Pappare"} fill priority sizes="100vw" className={`object-cover ${mood === "night" ? "night-hero-image" : ""}`} />
+          <Image src={active.heroImage} alt={mood === "morning" ? "Завтрак в Pappare" : mood === "day" ? "Дневной интерьер Pappare" : "Киноужин при свечах в Pappare"} fill priority sizes="100vw" className={`object-cover ${mood === "night" ? "night-hero-image" : ""}`} />
         </motion.div>
       </AnimatePresence>
       <motion.div
@@ -295,7 +295,7 @@ function MenuMoodCard({ mood, item }: { mood: Mood; item: { title: string; text:
 function CinemaPreview() {
   return <section className="section-pad bg-[#171c15] text-cream" aria-labelledby="cinema-preview-title"><div className="container">
     <Link href="/kino" className="group grid overflow-hidden rounded-[1.75rem] border border-amber/20 bg-[#22291e] shadow-[0_24px_80px_rgba(0,0,0,.22)] md:grid-cols-[0.85fr_1.15fr]">
-      <div className="relative min-h-64 overflow-hidden md:min-h-80"><Image src="/assets/pappare-night-mood.webp" alt="Вечерняя атмосфера Pappare" fill sizes="(max-width: 768px) 100vw, 45vw" className="object-cover transition duration-700 group-hover:scale-105" /><div className="absolute inset-0 bg-gradient-to-t from-[#171c15]/55 to-transparent md:bg-gradient-to-r" /></div>
+      <div className="relative min-h-64 overflow-hidden md:min-h-80"><Image src="/assets/pappare-cinema-evening-v2.png" alt="Вечерняя атмосфера Pappare" fill sizes="(max-width: 768px) 100vw, 45vw" className="object-cover transition duration-700 group-hover:scale-105" /><div className="absolute inset-0 bg-gradient-to-t from-[#171c15]/55 to-transparent md:bg-gradient-to-r" /></div>
       <div className="flex flex-col justify-center p-7 sm:p-10 md:p-12"><p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.24em] text-amber"><Film size={18} /> Киноужины Pappare</p><h2 id="cinema-preview-title" className="mt-5 font-display text-4xl font-semibold leading-tight sm:text-5xl">Кино, которое можно попробовать</h2><p className="mt-4 max-w-xl leading-7 text-cream/72">История на экране продолжается за вашим столом. Загляните в раздел киноужинов и посмотрите, как устроен вечер.</p><span className="mt-7 inline-flex w-fit items-center gap-2 border-b border-amber pb-1 text-sm font-semibold text-amber">Открыть киноужины <ArrowUpRight size={18} /></span><p className="mt-4 text-xs text-cream/50">Сейчас раздел работает в демонстрационном режиме: продажи и оплата не открыты.</p></div>
     </Link>
   </div></section>;
