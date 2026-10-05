@@ -2,7 +2,7 @@ export const contactInfo = {
   address: "Переулок Богданова, 4, Иркутск",
   addressStreet: "Переулок Богданова, 4",
   city: "Иркутск",
-  hours: "Ежедневно 08:00–16:00 и 18:00–22:00",
+  hours: "Ежедневно 08:00–22:00",
   phone: "+7 (914) 938-66-60",
   phoneHref: "tel:+79149386660",
   twoGisUrl: "https://2gis.ru/irkutsk/firm/70000001110409148",

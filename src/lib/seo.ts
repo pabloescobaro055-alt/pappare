@@ -145,12 +145,6 @@ export function restaurantJsonLd() {
           "Sunday",
         ],
         opens: "08:00",
-        closes: "16:00",
-      },
-      {
-        "@type": "OpeningHoursSpecification",
-        dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-        opens: "18:00",
         closes: "22:00",
       },
     ],

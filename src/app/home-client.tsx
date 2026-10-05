@@ -67,7 +67,7 @@ const moodContent: Record<Mood, MoodContent> = {
     cta: "Посмотреть меню",
     ctaHref: "/menu#main",
     heroImage: "/assets/pappare-day-mood.webp",
-    time: "с 12:00 до 16:00",
+    time: "с 12:00 до 18:00",
     accent: "text-olive",
   },
   night: {
@@ -146,7 +146,6 @@ export default function Home() {
       className={`overflow-hidden ${mood === "night" ? "night-mode-surface" : ""}`}
     >
       <Hero mood={mood} setMood={setMood} active={active} />
-      {mood !== "morning" && <Siesta mood={mood} />}
       <Characters mood={mood} />
       <MenuPreview mood={mood} setMood={setMood} />
       <CinemaPreview />
@@ -262,23 +261,6 @@ function SectionTitle({ eyebrow, title, text, mood }: { eyebrow: string; title: 
       <p className={`mt-4 text-base leading-7 md:text-lg md:leading-8 ${mood !== "night" ? "text-ink/68" : "text-cream/82"}`}>{text}</p>
     </motion.div>
   );
-}
-
-function Siesta({ mood }: { mood: Mood }) {
-  return (
-    <motion.section animate={{ backgroundColor: mood !== "night" ? "#F5EFE7" : "#211F19" }} transition={sectionTransition} className="section-pad">
-      <div className="container">
-        <motion.div initial={{ opacity: 0, y: 26 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={sectionTransition} className={`mx-auto grid max-w-5xl items-center gap-8 rounded-[2rem] border p-7 shadow-soft md:grid-cols-[0.8fr_1.2fr] md:p-10 ${mood !== "night" ? "border-walnut/10 bg-linen/55" : "border-amber/15 bg-cream/[0.06] text-cream"}`}>
-          <SiestaIllustration mood={mood} />
-          <div><p className={`text-sm font-semibold uppercase tracking-[0.24em] ${mood !== "night" ? "text-clay" : "text-amber"}`}>Сиеста</p><h2 className="mt-3 font-display text-4xl font-semibold md:text-6xl">16:00 – 18:00</h2><p className={`mt-4 max-w-2xl text-lg leading-8 ${mood !== "night" ? "text-ink/68" : "text-cream/70"}`}>Мы закрываем двери всего на пару часов, чтобы вечером открыть их уже совсем в другом настроении.</p></div>
-        </motion.div>
-      </div>
-    </motion.section>
-  );
-}
-
-function SiestaIllustration({ mood }: { mood: Mood }) {
-  return <div className="relative mx-auto h-44 w-64"><div className={`absolute bottom-8 left-6 right-6 h-px ${mood !== "night" ? "bg-walnut/30" : "bg-amber/30"}`} /><motion.div animate={{ x: mood !== "night" ? 12 : 130, y: mood !== "night" ? 0 : 30, opacity: mood !== "night" ? 1 : 0.35 }} transition={sectionTransition} className="absolute left-5 top-8 flex h-16 w-16 items-center justify-center rounded-full bg-amber text-ink shadow-glow"><Sun size={28} /></motion.div><motion.div animate={{ x: mood !== "night" ? 6 : 120, y: mood !== "night" ? 28 : 6, opacity: mood !== "night" ? 0.32 : 1 }} transition={sectionTransition} className="absolute left-8 top-10 flex h-14 w-14 items-center justify-center rounded-full bg-cream text-ink shadow-glow"><Moon size={24} /></motion.div><div className={`absolute bottom-8 left-24 h-16 w-24 rounded-t-full border ${mood !== "night" ? "border-walnut/30" : "border-amber/30"}`} /><div className={`absolute bottom-5 left-14 h-5 w-36 rounded-full ${mood !== "night" ? "bg-walnut/15" : "bg-amber/15"}`} /></div>;
 }
 
 function Characters({ mood }: { mood: Mood }) {
