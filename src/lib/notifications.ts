@@ -1,4 +1,5 @@
 import { deliveryErrorCode } from "@/lib/reservation-delivery";
+import { ensureTelegramWebhook } from "@/lib/telegram-webhook";
 
 export type ReservationPayload = {
   id?: number;
@@ -33,15 +34,36 @@ export type NotificationResult = {
 
 const emptyTelegramKeyboard = { inline_keyboard: [] };
 
-const telegramButtons = (id?: number) => ({
+const telegramButtons = (id?: number, status = "new") => ({
   inline_keyboard: [
     [
-      { text: "📞 Позвонили", callback_data: `reservation:called:${id}` },
+      ...(status === "called" ? [] : [{ text: "📞 Позвонили", callback_data: `reservation:called:${id}` }]),
       { text: "✅ Подтвердить", callback_data: `reservation:confirmed:${id}` },
     ],
     [{ text: "❌ Отменить", callback_data: `reservation:cancelled:${id}` }],
   ],
 });
+
+function telegramKeyboard(id?: number, status = "new") {
+  return status === "confirmed" || status === "cancelled"
+    ? emptyTelegramKeyboard
+    : telegramButtons(id, status);
+}
+
+async function telegramCallbackRequest(method: string, payload: Record<string, unknown>) {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  if (!token) throw new Error("Telegram token is not configured");
+  const response = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(8000),
+  });
+  const data = await response.json();
+  // Telegram can resend an update after a lost HTTP response.
+  if (method === "editMessageText" && data.description?.includes("message is not modified")) return;
+  if (!response.ok || data.ok !== true) throw new Error(`Telegram ${method} failed (${response.status})`);
+}
 
 function statusSuffix(status: string) {
   return `\n\nСтатус: ${statusLabel(status)}`;
@@ -113,6 +135,13 @@ export async function sendTelegramReservation(
       ok: false,
       error: "TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID is not configured",
     };
+  }
+
+  try {
+    await ensureTelegramWebhook();
+  } catch (error) {
+    // Deliver the reservation even if webhook configuration needs a later retry.
+    console.error("Telegram webhook setup failed", deliveryErrorCode(error));
   }
 
   try {
@@ -191,24 +220,15 @@ export async function editTelegramReservationMessage(
     throw new Error("Telegram credentials are not configured");
   }
 
-  const isProcessed = Boolean(payload.status && payload.status !== "new");
-  const response = await fetch(`https://api.telegram.org/bot${token}/editMessageText`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      chat_id: chatId,
-      message_id: payload.messageId,
-      text: formatReservation(payload),
-      reply_markup: isProcessed ? emptyTelegramKeyboard : telegramButtons(payload.id),
-    }),
+  await telegramCallbackRequest("editMessageText", {
+    chat_id: chatId,
+    message_id: payload.messageId,
+    text: formatReservation(payload),
+    reply_markup: telegramKeyboard(payload.id, payload.status),
   });
-
-  if (!response.ok) {
-    throw new Error(await response.text());
-  }
 }
 
-export async function editTelegramCallbackMessage(messageId: number, text: string, status: string) {
+export async function editTelegramCallbackMessage(messageId: number, text: string, status: string, id?: number) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
 
@@ -216,20 +236,12 @@ export async function editTelegramCallbackMessage(messageId: number, text: strin
     throw new Error("Telegram credentials are not configured");
   }
 
-  const response = await fetch(`https://api.telegram.org/bot${token}/editMessageText`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      chat_id: chatId,
-      message_id: messageId,
-      text: withStatus(text, status),
-      reply_markup: emptyTelegramKeyboard,
-    }),
+  await telegramCallbackRequest("editMessageText", {
+    chat_id: chatId,
+    message_id: messageId,
+    text: withStatus(text, status),
+    reply_markup: telegramKeyboard(id, status),
   });
-
-  if (!response.ok) {
-    throw new Error(await response.text());
-  }
 }
 
 export async function answerTelegramCallback(callbackQueryId: string, text: string) {
@@ -239,12 +251,8 @@ export async function answerTelegramCallback(callbackQueryId: string, text: stri
     throw new Error("Telegram token is not configured");
   }
 
-  await fetch(`https://api.telegram.org/bot${token}/answerCallbackQuery`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      callback_query_id: callbackQueryId,
-      text,
-    }),
+  await telegramCallbackRequest("answerCallbackQuery", {
+    callback_query_id: callbackQueryId,
+    text,
   });
 }

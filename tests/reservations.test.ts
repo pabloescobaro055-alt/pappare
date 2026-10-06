@@ -63,6 +63,7 @@ test("reservation delivery", async (t) => {
       env.VERCEL = "1";
       env.RESERVATION_RELAY_URL = DEFAULT_RESERVATION_RELAY;
       globalThis.fetch = async (url, init) => {
+        if (String(url).endsWith("/setWebhook")) return Response.json({ ok: true });
         assert.equal(url, "https://api.telegram.org/bottest-token/sendMessage");
         assert.ok(init?.signal);
         return Response.json({ ok: true, result: { message_id: 123 } });

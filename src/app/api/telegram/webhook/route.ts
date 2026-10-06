@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { isDatabaseConfigured, updateReservationStatus } from "@/lib/db";
+import { telegramWebhookSecret } from "@/lib/telegram-webhook";
+import { deliveryErrorCode } from "@/lib/reservation-delivery";
 import {
   answerTelegramCallback,
   editTelegramCallbackMessage,
@@ -13,7 +15,7 @@ export const runtime = "nodejs";
 const allowedStatuses = new Set(["called", "confirmed", "cancelled"]);
 
 export async function POST(request: NextRequest) {
-  const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
+  const secret = telegramWebhookSecret();
   const headerSecret = request.headers.get("x-telegram-bot-api-secret-token");
 
   if (!secret || headerSecret !== secret) {
@@ -27,6 +29,10 @@ export async function POST(request: NextRequest) {
 
   if (!callback || !match) {
     return NextResponse.json({ ok: true });
+  }
+
+  if (String(callback.message?.chat?.id) !== process.env.TELEGRAM_CHAT_ID?.trim()) {
+    return NextResponse.json({ ok: false }, { status: 403 });
   }
 
   const [, status, id] = match;
@@ -50,17 +56,18 @@ export async function POST(request: NextRequest) {
         });
       }
     } else if (messageId) {
-      await editTelegramCallbackMessage(messageId, String(callback.message?.text || ""), status);
+      await editTelegramCallbackMessage(messageId, String(callback.message?.text || ""), status, Number(id));
     }
 
     await answerTelegramCallback(callback.id, statusLabel(status));
   } catch (error) {
-    console.error("Telegram callback handling failed", error);
+    console.error("Telegram callback handling failed", deliveryErrorCode(error));
     try {
       await answerTelegramCallback(callback.id, "Не удалось обновить статус");
     } catch (callbackError) {
-      console.error("Telegram callback answer failed", callbackError);
+      console.error("Telegram callback answer failed", deliveryErrorCode(callbackError));
     }
+    return NextResponse.json({ ok: false }, { status: 503 });
   }
 
   return NextResponse.json({ ok: true });

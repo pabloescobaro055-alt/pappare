@@ -56,17 +56,28 @@ Required Vercel environment variables:
 
 Keep `TELEGRAM_BOT_TOKEN` only in Vercel Settings -> Environment Variables. Do not commit it and do not create `.env.local` for production secrets.
 
+Vercel registers the webhook automatically when it sends a reservation.
+This is necessary because callbacks must also use a server with Telegram access.
+The webhook secret comes from `TELEGRAM_WEBHOOK_SECRET`, or is derived from the
+bot token when that variable is absent. Both registration and validation use
+the same secret. Existing pending clicks are preserved.
+
 Webhook URL after deployment:
 
 ```text
-https://pappare.ru/api/telegram/webhook
+https://pappare.vercel.app/api/telegram/webhook
 ```
 
 Set webhook with the required secret:
 
 ```text
-https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook?url=https://pappare.ru/api/telegram/webhook&secret_token=<TELEGRAM_WEBHOOK_SECRET>
+https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook?url=https://pappare.vercel.app/api/telegram/webhook&secret_token=<TELEGRAM_WEBHOOK_SECRET>
 ```
+
+After a Vercel deployment, send a clearly marked test reservation through the
+site to register the webhook, then verify Called -> Confirmed on one test and
+Cancelled on another. Called leaves the final actions available; Confirmed and
+Cancelled remove the buttons. The webhook accepts only the configured admin chat.
 
 ## MAX
 
