@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { createReservation, isDatabaseConfigured, setTelegramMessageId } from "@/lib/db";
+import { deliveryErrorCode, reservationRelayUrl } from "@/lib/reservation-delivery";
 import {
   ReservationPayload,
   sendMaxReservation,
@@ -103,14 +104,18 @@ export async function POST(request: NextRequest) {
   }
 
   // A relay can deliver notifications when the web server cannot reach Telegram directly.
-  const relayUrl = process.env.RESERVATION_RELAY_URL?.trim();
+  const relayUrl = reservationRelayUrl();
   if (relayUrl) {
     try {
+      if (request.headers.has("x-pappare-relay-hop")) {
+        throw new Error("Reservation relay loop");
+      }
       const relayResponse = await fetch(relayUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "X-Forwarded-For": ip,
+          "X-Pappare-Relay-Hop": "1",
         },
         body: JSON.stringify({ ...payload, company: "", submittedAt }),
         cache: "no-store",
@@ -128,7 +133,7 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      console.error("Reservation relay failed", relayResponse.status, relayResult?.message);
+      console.error("Reservation relay failed", relayResponse.status);
       return NextResponse.json(
         {
           ok: false,
@@ -137,7 +142,7 @@ export async function POST(request: NextRequest) {
         { status: relayResponse.status >= 400 ? relayResponse.status : 502 },
       );
     } catch (error) {
-      console.error("Reservation relay request failed", error);
+      console.error("Reservation relay request failed", deliveryErrorCode(error));
       return NextResponse.json(
         { ok: false, message: "Не удалось отправить заявку. Пожалуйста, позвоните нам." },
         { status: 502 },
@@ -172,7 +177,12 @@ export async function POST(request: NextRequest) {
     results.push(result);
 
     if (isDatabaseConfigured() && reservation.id && result.ok && result.messageId) {
-      await setTelegramMessageId(reservation.id, result.messageId);
+      try {
+        await setTelegramMessageId(reservation.id, result.messageId);
+      } catch (error) {
+        // The notification was already delivered: do not invite a duplicate submission.
+        console.error("Reservation message ID save failed", deliveryErrorCode(error));
+      }
     }
   }
 

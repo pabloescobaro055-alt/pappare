@@ -1,3 +1,5 @@
+import { deliveryErrorCode } from "@/lib/reservation-delivery";
+
 export type ReservationPayload = {
   id?: number;
   name: string;
@@ -113,27 +115,32 @@ export async function sendTelegramReservation(
     };
   }
 
-  const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      chat_id: chatId,
-      text: formatReservation(payload),
-      disable_web_page_preview: true,
-      reply_markup: telegramButtons(payload.id),
-    }),
-  });
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: formatReservation(payload),
+        disable_web_page_preview: true,
+        reply_markup: telegramButtons(payload.id),
+      }),
+      signal: AbortSignal.timeout(8000),
+    });
 
-  if (!response.ok) {
-    return {
-      channel: "telegram",
-      ok: false,
-      error: await response.text(),
-    };
+    if (!response.ok) {
+      return {
+        channel: "telegram",
+        ok: false,
+        error: `Telegram HTTP ${response.status}`,
+      };
+    }
+
+    const data = await response.json();
+    return { channel: "telegram", ok: data.ok === true, messageId: data.result?.message_id };
+  } catch (error) {
+    return { channel: "telegram", ok: false, error: deliveryErrorCode(error) };
   }
-
-  const data = await response.json();
-  return { channel: "telegram", ok: true, messageId: data.result?.message_id };
 }
 
 export async function sendMaxReservation(

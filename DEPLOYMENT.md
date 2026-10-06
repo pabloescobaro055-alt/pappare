@@ -30,11 +30,22 @@ The SQL migration is available in `db/reservations.sql`.
 
 ## Telegram
 
-If the VPS cannot reach `api.telegram.org:443`, set
-`RESERVATION_RELAY_URL=https://pappare.vercel.app/api/reservations` in the VPS `.env`.
-The existing Vercel deployment accepts the reservation and sends its Telegram notification.
-Do not set this variable on the Vercel deployment, or it would forward requests to itself.
-Verify the VPS can reach `pappare.vercel.app` before enabling the relay.
+Production deployments outside Vercel forward reservations to
+`https://pappare.vercel.app/api/reservations` by default. The Pappare VPS cannot
+reach Telegram directly. No `.env` change is required for this default route.
+The Vercel deployment accepts the reservation and sends its Telegram notification.
+Vercel always sends directly, even if it has a stale relay environment variable.
+The VPS must be able to reach `pappare.vercel.app`.
+
+`RESERVATION_RELAY_URL` optionally overrides the destination on the VPS.
+Set it to `direct` only on servers with working Telegram connectivity.
+Development uses direct delivery by default. A failed relay request is never
+retried automatically through another route, avoiding duplicate notifications
+when the delivery succeeded but its response was lost.
+
+After pulling this change on the VPS, run `corepack pnpm build`, then only after
+a successful build run `pm2 restart pappare --update-env`. Test the form on
+`https://pappare.ru` and verify the message in the restaurant's Telegram chat.
 
 Required Vercel environment variables:
 
