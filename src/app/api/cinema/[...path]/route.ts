@@ -1,9 +1,9 @@
 import {createHash,timingSafeEqual,randomUUID} from 'node:crypto';
 import {loadEvents,loadEvent,saveEvent} from '@/lib/cinema/events';
-import {transaction} from '@/lib/cinema/database';
+import {transaction,cinemaDatabaseUrl} from '@/lib/cinema/database';
 import {adminOrders,reserveByAdmin,cancelAdminReservation,markAdminPaid} from '@/lib/cinema/orders';
 import sharp from 'sharp';
-function admin(request:NextRequest){const secret=process.env.CINEMA_ADMIN_SECRET;const token=request.headers.get('authorization')||'';if(!secret||secret.length<32||!timingSafeEqual(createHash('sha256').update(token).digest(),createHash('sha256').update('Bearer '+secret).digest()))throw new CinemaError('Нет доступа',401);if(process.env.NODE_ENV==='production'&&!process.env.DATABASE_URL)throw new CinemaError('Для администрирования подключите PostgreSQL',503);}
+function admin(request:NextRequest){const secret=process.env.CINEMA_ADMIN_SECRET;const token=request.headers.get('authorization')||'';if(!secret||secret.length<32||!timingSafeEqual(createHash('sha256').update(token).digest(),createHash('sha256').update('Bearer '+secret).digest()))throw new CinemaError('Нет доступа',401);if(process.env.NODE_ENV==='production'&&!cinemaDatabaseUrl())throw new CinemaError('Для администрирования подключите PostgreSQL',503);}
 import {NextRequest,NextResponse} from 'next/server';
 import {movieEvents,isPast} from '@/data/cinema';
 import {CinemaError,createOrder,getOrder,seatsFor,changeStatus,demoMode} from '@/lib/cinema/orders';

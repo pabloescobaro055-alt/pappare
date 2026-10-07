@@ -8,6 +8,7 @@ import { seatIds } from '@/data/cinema-hall';
 type Row = Record<string, unknown>;
 export type Connection = { query: (sql:string, params?:unknown[])=>Promise<Row[]> };
 const state = globalThis as unknown as { cinemaPool?:Pool; cinemaSqlite?:DatabaseSync; cinemaQueue?:Promise<unknown>; cinemaReady?:Promise<void> };
+export const cinemaDatabaseUrl=()=>process.env.CINEMA_DATABASE_URL || process.env.DATABASE_URL;
 async function sqlite() {
   if (!state.cinemaSqlite) {
     if (process.env.NODE_ENV === 'production' && process.env.CINEMA_DEMO === 'false') throw new Error('DATABASE_URL required for production cinema sales');
@@ -21,8 +22,8 @@ async function sqlite() {
   return state.cinemaSqlite;
 }
 async function rawTransaction<T>(fn:(db:Connection)=>Promise<T>):Promise<T> {
-  if (process.env.DATABASE_URL) {
-    state.cinemaPool ??= new Pool({connectionString:process.env.DATABASE_URL});
+  if (cinemaDatabaseUrl()) {
+    state.cinemaPool ??= new Pool({connectionString:cinemaDatabaseUrl()});
     const client = await state.cinemaPool.connect();
     try {
       await client.query('BEGIN');

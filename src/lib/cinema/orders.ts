@@ -3,7 +3,7 @@ import type {MovieEvent} from '@/data/cinema';
 import { randomBytes, createHash } from 'node:crypto';
 import { canBook, isPast, eventById, money, dateLabel } from '@/data/cinema';
 import { seatIds, seatLabel, type Seat } from '@/data/cinema-hall';
-import { transaction, type Connection } from './database';
+import { transaction, cinemaDatabaseUrl, type Connection } from './database';
 
 export class CinemaError extends Error { constructor(message:string, public status=400){super(message);} }
 export type PaymentData = { mode:'demo'|'manual'|'provider'; url?:string; qrUrl?:string; providerId?:string; source?:'admin'; note?:string };
@@ -30,7 +30,7 @@ async function enqueue(db:Connection,o:CinemaOrder) {
 }
 export async function seatsFor(eventId:string):Promise<Seat[]> {
   if (!await loadEvent(eventId)) throw new CinemaError('Киноужин не найден',404);
-  if (process.env.NODE_ENV === 'production' && demoMode() && !process.env.DATABASE_URL) return seatIds.map(id=>({id,status:'disabled'}));
+  if (process.env.NODE_ENV === 'production' && demoMode() && !cinemaDatabaseUrl()) return seatIds.map(id=>({id,status:'disabled'}));
   return transaction(async db=>{await expire(db);return (await db.query('SELECT id,status FROM cinema_seats WHERE event_id=$1 ORDER BY id',[eventId])) as unknown as Seat[];});
 }
 export async function getOrder(id:string) {return transaction(async db=>{await expire(db);return read(db,id);});}

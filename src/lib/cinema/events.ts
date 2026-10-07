@@ -1,8 +1,8 @@
 import {movieEvents,isPast,type MovieEvent} from '@/data/cinema';
 import {seatIds} from '@/data/cinema-hall';
-import {transaction} from './database';
+import {transaction,cinemaDatabaseUrl} from './database';
 export async function loadEvents():Promise<MovieEvent[]> {
- if(process.env.NODE_ENV==='production'&&!process.env.DATABASE_URL)return movieEvents;
+ if(process.env.NODE_ENV==='production'&&!cinemaDatabaseUrl())return movieEvents;
  return transaction(async db=>{const rows=await db.query('SELECT data FROM cinema_event_overrides');const map=new Map(movieEvents.map(e=>[e.id,e]));for(const r of rows){const e=JSON.parse(String(r.data));map.set(e.id,e);}return [...map.values()].sort((a,b)=>a.startsAt.localeCompare(b.startsAt));});
 }
 export async function loadEvent(id:string){return (await loadEvents()).find(e=>e.id===id);}
