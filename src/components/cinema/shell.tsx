@@ -16,6 +16,6 @@ export function CinemaShell({children}:{children:React.ReactNode}) {
       <button className="theme-switch" onClick={toggle} aria-label={theme==='dark'?'Включить светлую тему':'Включить тёмную тему'}>{theme==='dark'?<Sun size={18}/>:<Moon size={18}/>}</button>
     </header>
     {children}
-    {!seats&&<footer className="cinema-footer"><Link href="/">Pappare Italiano</Link><span>Иркутск · переулок Богданова, 4</span><a href="tel:+79149386660">+7 (914) 938-66-60</a></footer>}
+    {!seats&&<footer className="cinema-footer"><Link href="/">Pappare Italiano</Link><span>Иркутск · переулок Богданова, 4</span><a href="tel:+79149386660">+7 (914) 938-66-60</a><span>ИП Ашуров Данил Денисович<br/>ИНН 381210419046 · ОГРНИП 322385000095005<br/>664011, г. Иркутск, пер. Богданова, 4<br/><a href="mailto:pappare38@mail.ru">pappare38@mail.ru</a></span><nav aria-label="Документы"><Link href="/kino/terms">Бронирование, оплата и возврат</Link><br/><Link href="/kino/privacy">Персональные данные</Link><br/><Link href="/contacts">Контакты и реквизиты</Link></nav></footer>}
   </div>;
 }

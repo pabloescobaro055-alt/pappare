@@ -1,3 +1,9 @@
+import {createHash,timingSafeEqual,randomUUID} from 'node:crypto';
+import {loadEvents,loadEvent,saveEvent} from '@/lib/cinema/events';
+import {transaction} from '@/lib/cinema/database';
+import {adminOrders,reserveByAdmin,cancelAdminReservation,markAdminPaid} from '@/lib/cinema/orders';
+import sharp from 'sharp';
+function admin(request:NextRequest){const secret=process.env.CINEMA_ADMIN_SECRET;const token=request.headers.get('authorization')||'';if(!secret||secret.length<32||!timingSafeEqual(createHash('sha256').update(token).digest(),createHash('sha256').update('Bearer '+secret).digest()))throw new CinemaError('Нет доступа',401);if(process.env.NODE_ENV==='production'&&!process.env.DATABASE_URL)throw new CinemaError('Для администрирования подключите PostgreSQL',503);}
 import {NextRequest,NextResponse} from 'next/server';
 import {movieEvents,isPast} from '@/data/cinema';
 import {CinemaError,createOrder,getOrder,seatsFor,changeStatus,demoMode} from '@/lib/cinema/orders';
@@ -11,9 +17,11 @@ function error(e:unknown) {if(e instanceof CinemaError)return json({message:e.me
 export async function GET(request:NextRequest,context:Context) {
   try {
     const p=(await context.params).path;
-    if(p[0]==='events'&&p.length===1) return json({events:await Promise.all(movieEvents.filter(e=>!isPast(e)).map(async e=>({...e,available:(await seatsFor(e.id)).filter(s=>s.status==='available').length})))});
+    if(p[0]==='admin'){admin(request);return json({events:await loadEvents(),orders:request.nextUrl.searchParams.get('eventId')?await adminOrders(request.nextUrl.searchParams.get('eventId')!):[]});}
+    if(p[0]==='media'&&p.length===2){const rows=await transaction(db=>db.query('SELECT data FROM cinema_media WHERE id=$1',[p[1]]));if(!rows.length)return json({message:'Фото не найдено'},404);return new NextResponse(Buffer.from(String(rows[0].data),'base64'),{headers:{'Content-Type':'image/webp','Cache-Control':'public,max-age=31536000,immutable','X-Content-Type-Options':'nosniff'}});}
+    if(p[0]==='events'&&p.length===1) return json({events:await Promise.all((await loadEvents()).filter(e=>!isPast(e)).map(async e=>({...e,available:(await seatsFor(e.id)).filter(s=>s.status==='available').length})))});
     if(p[0]==='events'&&p[2]==='seats') return json({seats:await seatsFor(p[1])});
-    if(p[0]==='orders'&&p.length===2) return json({order:await getOrder(p[1])});
+    if(p[0]==='orders'&&p.length===2) {const order=await getOrder(p[1]);return json({order,event:await loadEvent(order.eventId)});}
     return json({message:'Не найдено'},404);
   }catch(e){return error(e);}
 }
@@ -30,6 +38,21 @@ export async function POST(request:NextRequest,context:Context) {
     const origin=request.headers.get('origin');
     const expectedOrigin=process.env.CINEMA_PUBLIC_ORIGIN || `${request.nextUrl.protocol}//${request.headers.get('host')}`;
     if(origin && origin!==expectedOrigin) return json({message:'Недопустимый источник запроса'},403);
+    if(p[0]==='admin'){
+      admin(request);
+      if(p[1]==='photo'){
+        if(Number(request.headers.get('content-length'))>8000000)throw new CinemaError('Максимум 8 МБ');
+        const buffer=Buffer.from(await request.arrayBuffer());if(buffer.length>8000000)throw new CinemaError('Максимум 8 МБ');
+        let image:Buffer;try{image=await sharp(buffer,{limitInputPixels:24000000}).rotate().resize(1800,1800,{fit:'inside',withoutEnlargement:true}).webp({quality:85}).toBuffer();}catch{throw new CinemaError('Загрузите корректное фото JPG, PNG или WebP');}
+        const id=randomUUID();await transaction(db=>db.query('INSERT INTO cinema_media(id,data) VALUES($1,$2)',[id,image.toString('base64')]));return json({url:'/api/cinema/media/'+id});
+      }
+      const raw=await request.text();if(raw.length>20000)throw new CinemaError('Слишком большой запрос');const body=JSON.parse(raw);
+      if(p[1]==='event'){try{return json({event:await saveEvent(body)});}catch(e){throw new CinemaError((e as Error).message);}}
+      if(p[1]==='reserve'){const order=await reserveByAdmin(body);await flushCinemaNotifications();return json({order});}
+      if(p[1]==='cancel'){const order=await cancelAdminReservation(body.id);await flushCinemaNotifications();return json({order});}
+      if(p[1]==='paid'){const order=await markAdminPaid(body.id,body.note);await flushCinemaNotifications();return json({order});}
+      return json({message:'Не найдено'},404);
+    }
     if(p[0]==='notifications'&&p[1]==='retry') {
       if(!process.env.CINEMA_ADMIN_SECRET||request.headers.get('authorization')!==`Bearer ${process.env.CINEMA_ADMIN_SECRET}`)return json({message:'Unauthorized'},401);
       await flushCinemaNotifications();return json({ok:true});

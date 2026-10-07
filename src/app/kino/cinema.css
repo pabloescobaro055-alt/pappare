@@ -30,3 +30,9 @@
 .cinema-closed-summary{gap:18px}.cinema-closed-summary h2{margin:0}.cinema-closed-summary p{color:var(--muted);font-size:13px}.cinema-closed-summary .order-link{margin-top:8px}
 @media(max-width:760px){.movie-art{height:440px}.movie-menu li strong{font-size:23px}}
 @media(max-width:760px){.cinema-closed-summary{position:static;max-height:none;margin-inline:0}}
+
+.cinema-footer{flex-wrap:wrap;gap:18px}
+
+.legal-page{max-width:850px;padding-block:50px 80px}.legal-page h1{font-size:clamp(40px,6vw,68px);margin:20px 0}.legal-page h2{font-size:32px;margin:35px 0 14px}.legal-page p{margin:14px 0;color:var(--muted);line-height:1.85}.legal-page a{text-decoration:underline;text-underline-offset:4px;color:var(--accent)}
+
+.admin-page{padding-block:40px}.admin-page h1{font-size:52px}.admin-page h2{font-size:32px;margin:30px 0 16px}.admin-toolbar{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin:20px 0}.admin-page button,.admin-page select,.legal-page button{padding:12px 18px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text)}.admin-page input,.admin-page textarea,.admin-page select{color:var(--text);background:var(--surface)}.admin-editor{max-width:720px}.admin-editor textarea{min-height:160px;padding:14px}.admin-poster{max-width:220px;max-height:250px;object-fit:contain}.admin-hall{height:720px;display:flex;flex-direction:column}.admin-order{padding:20px;margin-block:15px;border:1px solid var(--border);border-radius:8px}@media(max-width:600px){.admin-hall{height:570px}}

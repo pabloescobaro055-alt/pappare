@@ -48,6 +48,9 @@ async function rawTransaction<T>(fn:(db:Connection)=>Promise<T>):Promise<T> {
   return promise;
 }
 const schema = [
+  `CREATE TABLE IF NOT EXISTS cinema_event_overrides (id TEXT PRIMARY KEY, data TEXT NOT NULL)`,
+  `CREATE TABLE IF NOT EXISTS cinema_media (id TEXT PRIMARY KEY, data TEXT NOT NULL)`,
+  `CREATE TABLE IF NOT EXISTS cinema_admin_audit (id TEXT PRIMARY KEY, action TEXT NOT NULL, order_id TEXT NOT NULL, note TEXT NOT NULL, created_at BIGINT NOT NULL)`,
   `CREATE TABLE IF NOT EXISTS movie_events (id TEXT PRIMARY KEY, data TEXT NOT NULL)`,
   `CREATE TABLE IF NOT EXISTS cinema_orders (id TEXT PRIMARY KEY, event_id TEXT NOT NULL REFERENCES movie_events(id), customer_name TEXT NOT NULL, phone TEXT NOT NULL, telegram TEXT NOT NULL, total_amount INTEGER NOT NULL, status TEXT NOT NULL, created_at BIGINT NOT NULL, expires_at BIGINT NOT NULL, request_key TEXT UNIQUE NOT NULL, payment_data TEXT NOT NULL DEFAULT '{}')`,
   `CREATE TABLE IF NOT EXISTS cinema_seats (event_id TEXT NOT NULL REFERENCES movie_events(id), id TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'available', hold_order_id TEXT REFERENCES cinema_orders(id), hold_until BIGINT, PRIMARY KEY(event_id,id))`,
@@ -59,7 +62,7 @@ export async function transaction<T>(fn:(db:Connection)=>Promise<T>) {
   if (!state.cinemaReady) state.cinemaReady = rawTransaction(async db=>{
     for (const sql of schema) await db.query(sql);
     for (const e of movieEvents) {
-      await db.query('INSERT INTO movie_events(id,data) VALUES ($1,$2) ON CONFLICT(id) DO UPDATE SET data=$2',[e.id,JSON.stringify(e)]);
+      await db.query('INSERT INTO movie_events(id,data) VALUES ($1,$2) ON CONFLICT(id) DO NOTHING',[e.id,JSON.stringify(e)]);
       for (const seat of seatIds) await db.query('INSERT INTO cinema_seats(event_id,id) VALUES ($1,$2) ON CONFLICT(event_id,id) DO NOTHING',[e.id,seat]);
     }
   }).catch(e=>{state.cinemaReady=undefined;throw e;});

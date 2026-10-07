@@ -37,7 +37,7 @@ export function Footer() {
         </div>
 
         <div className="mt-8 border-t border-cream/10 pt-5 text-xs leading-5 text-cream/42 md:mt-10">
-          <p>Индивидуальный предприниматель Ашуров Д.Д.</p>
+          <p><a href="mailto:pappare38@mail.ru">pappare38@mail.ru</a> · Почтовый адрес: 664011, г. Иркутск, пер. Богданова, 4</p><p><a href="/kino/terms">Условия киноужинов и возврата</a> · <a href="/kino/privacy">Персональные данные гостей киноужина</a></p><p>Индивидуальный предприниматель Ашуров Данил Денисович</p>
           <p>ИНН: 381210419046 · ОГРНИП: 322385000095005</p>
         </div>
       </div>

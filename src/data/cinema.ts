@@ -6,25 +6,24 @@ export type MovieEvent = {
   venue: string; demo: boolean; duration?: string; age?: string;
   menuCourses?: { category: string; name: string }[];
 };
-export const movieEvents: MovieEvent[] = [
-  { id: 'test-eat-pray-love-20261004', slug: 'eat-pray-love', title: 'Ешь, молись, люби',
-    date: '2026-10-04', time: '18:00', startsAt: '2026-10-04T18:00:00+08:00',
+export const movieEvents: MovieEvent[] = [11].map(day => (
+  { id: `eat-pray-love-202610${day}`, slug: `eat-pray-love-${day}-october`, title: 'Ешь, молись, люби',
+    date: `2026-10-${day}`, time: '18:00', startsAt: `2026-10-${day}T18:00:00+08:00`,
     image: '/assets/eat-pray-love-poster.png', heroImage: '/assets/eat-pray-love-poster.png',
-    shortDescription: 'Тестовый просмотр фильма и ужин в итальянском настроении.',
-    description: '4 октября в 18:00 смотрим «Ешь, молись, люби» в Pappare. К фильму подготовили меню из четырёх подач.',
-    menuDescription: 'Меню вечера по афише Pappare:',
+    shortDescription: 'Любимое кино и итальянский ужин из четырёх подач.',
+    description: 'В 18:00 смотрим «Ешь, молись, люби» в Pappare. К фильму подготовили меню из четырёх подач.',
+    menuDescription: 'В стоимость входят четыре подачи:',
     menuCourses: [
       { category: 'Аперитив', name: 'Коктейль лимончелло' },
       { category: 'Паста', name: 'Спагетти all’Amatriciana' },
       { category: 'Пицца', name: 'Маргарита из Неаполя' },
       { category: 'Горячее', name: 'Стейк из фермерской индейки с соусом вишневый демиглас' },
     ],
-    pricePerSeat: 0, status: 'upcoming', saleStatus: 'closed', venue: 'PAPPARE · Иркутск', demo: true },
-];
+    pricePerSeat: 2500, status: 'active', saleStatus: 'closed', venue: 'PAPPARE · Иркутск', demo: false }));
 export const cinemaCopy = {
   intro: 'Вечер, в котором кино выходит за пределы экрана. Мы подаём блюда, связанные со сценами и атмосферой фильма, — а вы пробуете историю на вкус.',
 };
-export const eventBySlug = (slug: string) => movieEvents.find(e => e.slug === slug);
+export const eventBySlug = (slug: string) => movieEvents.find(e => e.slug === slug) || (slug === 'eat-pray-love' ? movieEvents.find(e => !isPast(e)) || movieEvents[0] : undefined);
 export const eventById = (id: string) => movieEvents.find(e => e.id === id);
 export const isPast = (event: MovieEvent, now = Date.now()) => Date.parse(event.startsAt) <= now || event.status === 'finished';
 export const canBook = (event: MovieEvent) => !(process.env.NODE_ENV === 'production' && event.demo) && !isPast(event) && event.status === 'active' && event.saleStatus === 'open';

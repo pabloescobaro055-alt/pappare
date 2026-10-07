@@ -5,3 +5,7 @@
 node_modules
 *.tsbuildinfo
 work/*.sqlite*
+.next-build
+
+.env.*
+!.env.example
