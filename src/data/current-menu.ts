@@ -148,7 +148,7 @@ const kids = [section("kids", "Детское меню", `Куриный суп�
 Кальцоне с курицей и сыром|250`)];
 
 const evening = [
-  section("evening-burgers", "Бургеры", `Еб*йше дорогой бургер|900
+  section("evening-burgers", "Бургеры", `Фирменный Паппарэ|900
 Чизбургер|490
 Чикенбургер|490`),
   section("evening-chimichanga", "Чимичанга", `С курицей|290

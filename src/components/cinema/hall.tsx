@@ -29,8 +29,8 @@ export function CinemaHall({seats,selected,onToggle,locked=false,price,onView}:{
             <text textAnchor="middle" dominantBaseline="central" className="seat-symbol">{status==='selected'?'✓':status==='sold'?'×':status==='held'?'–':status==='disabled'?'×':seat.number}</text>
           </g>;})}
         </g>)}
-        {cinemaViews.map(view=><g key={view.id} className="hall-viewpoint" transform={`translate(${view.x} ${view.y})`} role="button" tabIndex={0} aria-label={`Посмотреть фотографию: ${view.label.toLowerCase()}`} onClick={()=>onView(view.id)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onView(view.id);}}}>
-          <title>Нажмите, чтобы посмотреть зал отсюда</title>
+        {cinemaViews.map(view=><g key={view.id} className="hall-viewpoint" transform={`translate(${view.x} ${view.y})`} role="button" tabIndex={0} aria-label={`Посмотреть видео и фото: ${view.label.toLowerCase()}`} onClick={()=>onView(view.id)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onView(view.id);}}}>
+          <title>Нажмите, чтобы посмотреть видео и фото зала отсюда</title>
           <circle r="25" fill="transparent"/>
           <g transform={`scale(${view.scale})`}>
           <circle className="viewpoint-halo" r="25"/>
