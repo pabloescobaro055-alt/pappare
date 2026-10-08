@@ -85,8 +85,23 @@ test('Table prices: mixed tables, stale quotes, immutable paid orders and valida
  const unchanged=await getOrder(first.id);assert.equal(unchanged.total,8000);assert.deepEqual(unchanged.seatPrices,first.seatPrices);
  assert.equal((await reserveByAdmin(input)).id,first.id);
  const next=await reserveByAdmin({...body([seatIds[9],seatIds[2]]),eventId:e.id,expectedTotal:4300});assert.equal(next.total,4300);assert.equal(next.seatPrices[seatIds[9]],1800);assert.equal(next.seatPrices[seatIds[2]],2500);
- for(const prices of [{'table-1':0},{'table-1':-100},{'table-1':1.5},{'table-1':100001},{'table-99':2500}])await assert.rejects(saveEvent({...e,tablePrices:prices}),/Цена места/);
+ for(const prices of [{'table-1':0},{'table-1':-100},{'table-1':1.5},{'table-1':100001},{'table-99':2500}] as Record<string,number>[])await assert.rejects(saveEvent({...e,tablePrices:prices}),/Цена места/);
  const pub={...e,id:'table-pricing-public',slug:'table-pricing-public',saleStatus:'open' as const,demo:true};await saveEvent(pub);
  await transaction(db=>db.query('UPDATE cinema_event_overrides SET data=$1 WHERE id=$2',[JSON.stringify(pub),pub.id]));
  const publicOrder=await createOrder({...body([seatIds[0],seatIds[8],seatIds[2]]),eventId:pub.id,expectedTotal:7500,total:1},'mixed-public');assert.equal(publicOrder.total,7500);assert.equal(publicOrder.seatPrices[seatIds[0]],3000);
+});
+
+test('Public seat selection before payments and stable IDs after renumbering',async()=>{
+ const {canSelectSeats}=await import('../src/data/cinema');
+ const {seatLabel}=await import('../src/data/cinema-hall');
+ const {seatPrice}=await import('../src/data/cinema-pricing');
+ const closed={...event,saleStatus:'closed' as const,tablePrices:{'table-10':3200,'table-1':2100}};
+ assert.equal(canSelectSeats(closed),true);assert.equal(canBook(closed),false);
+ assert.equal(canSelectSeats({...closed,status:'finished'}),false);
+ assert.equal(canSelectSeats({...closed,startsAt:'2020-01-01T18:00:00+08:00'}),false);
+ assert.equal(cinemaHallConfig.tables[0].id,'table-10');assert.equal(cinemaHallConfig.tables[0].number,1);
+ assert.equal(cinemaHallConfig.tables[0].seats[0].id,'T10-S1');
+ assert.equal(seatLabel('T10-S1'),'Стол 1 · место 1');assert.equal(seatPrice(closed,'T10-S1'),3200);
+ assert.equal(seatLabel('T01-S1'),'Стол 8 · место 1');assert.equal(seatPrice(closed,'T01-S1'),2100);
+ assert.deepEqual(seatIds.slice(0,2),['T01-S1','T01-S2']);
 });

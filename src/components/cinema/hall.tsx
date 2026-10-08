@@ -9,6 +9,13 @@ export function CinemaHall({seats,selected,onToggle,locked=false,price,tablePric
   const [zoom,setZoom]=useState(1),[active,setActive]=useState<number|null>(null);
   const scroll=useRef<HTMLDivElement>(null),drag=useRef<{x:number;y:number;left:number;top:number}|null>(null);
   const state=(id:string)=>selected.includes(id)?'selected':seats.find(s=>s.id===id)?.status||'disabled';
+  function toggleTable(table:(typeof config.tables)[number]){
+    setActive(table.number);
+    if(locked)return;
+    const available=table.seats.filter(seat=>['available','selected'].includes(state(seat.id)));
+    const remove=available.length>0&&available.every(seat=>selected.includes(seat.id));
+    for(const seat of available)if(remove||!selected.includes(seat.id))onToggle(seat.id);
+  }
   return <div className="hall-wrap"><div className="hall-tools"><span>ПЛАН ВАШЕГО ВЕЧЕРА</span><div><button aria-label="Уменьшить схему" onClick={()=>setZoom(z=>Math.max(1,z-.25))} disabled={zoom===1}><Minus size={16}/></button><button aria-label="Увеличить схему" onClick={()=>setZoom(z=>Math.min(2.5,z+.25))}><Plus size={16}/></button><button aria-label="Сбросить масштаб" onClick={()=>setZoom(1)}><RotateCcw size={15}/></button></div></div>
     <div className="hall-scroll" ref={scroll} onPointerDown={e=>{if(zoom>1&&(e.target as Element).closest('[role="button"]')===null&&e.pointerType==='mouse'){drag.current={x:e.clientX,y:e.clientY,left:e.currentTarget.scrollLeft,top:e.currentTarget.scrollTop};e.currentTarget.setPointerCapture(e.pointerId);}}} onPointerMove={e=>{if(drag.current){e.currentTarget.scrollLeft=drag.current.left-(e.clientX-drag.current.x);e.currentTarget.scrollTop=drag.current.top-(e.clientY-drag.current.y);}}} onPointerUp={()=>drag.current=null} onPointerCancel={()=>drag.current=null}>
       <svg className="cinema-hall" viewBox={config.viewBox} style={{width:`${zoom*100}%`,height:`${zoom*100}%`}} aria-label="Схема PAPPARE: 10 столов и 20 мест" role="group">
@@ -22,7 +29,7 @@ export function CinemaHall({seats,selected,onToggle,locked=false,price,tablePric
         <path d="M530 182Q580 220 599 291" className="walking-path"/><text x="570" y="221" className="hall-caption">проход</text>
         <g className="plants" aria-hidden="true">{[[355,264],[630,269]].map(([x,y],i)=><g key={i} transform={`translate(${x} ${y})`}><circle r="15"/><ellipse rx="8" ry="21" transform="rotate(35)"/><ellipse rx="8" ry="21" transform="rotate(-45)"/></g>)}</g>
         {config.tables.map(table=>{const cost=tablePrices?.[table.id]??price;return <g key={table.id} transform={`translate(${table.x} ${table.y}) rotate(${table.rotation})`} className={`hall-table ${active===table.number?'table-active':''}`}>
-          <g role="button" tabIndex={0} aria-label={`Стол ${table.number}, два места, ${cost} рублей за место`} onClick={()=>setActive(table.number)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setActive(table.number);}}}>
+          <g role="button" tabIndex={0} aria-label={`Стол ${table.number}, два места, ${cost} рублей за место`} onClick={()=>toggleTable(table)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggleTable(table);}}}>
             <rect x={table.orientation==='vertical'?-30:-44} y={table.orientation==='vertical'?-44:-30} width={table.orientation==='vertical'?60:88} height={table.orientation==='vertical'?88:60} rx="30" className="table-top"/>
             <text className="table-number" x={table.orientation==='vertical'?40:0} y={table.orientation==='vertical'?0:-42} textAnchor="middle" dominantBaseline="central">{String(table.number).padStart(2,'0')}</text>
             <text className="table-price" x="0" y={table.orientation==='vertical'?-56:38} textAnchor="middle">{money(cost)}</text>
@@ -44,6 +51,6 @@ export function CinemaHall({seats,selected,onToggle,locked=false,price,tablePric
         </g>)}
       </svg>
     </div><div className="seat-legend">{[['available','Свободно'],['selected','Ваш выбор'],['held','В резерве'],['sold','Занято'],['disabled','Недоступно']].map(([s,label])=><span key={s}><i className={`legend-${s}`}>{s==='selected'?'✓':s==='sold'||s==='disabled'?'×':s==='held'?'–':''}</i>{label}</span>)}</div>
-    <p className="hall-footnote">Овал — один стол · Нажмите на место 1 или 2 · Схему можно увеличить</p>
+    <p className="hall-footnote">Овал — один стол · Нажмите на стол целиком или на место 1 или 2 · Схему можно увеличить</p>
   </div>;
 }

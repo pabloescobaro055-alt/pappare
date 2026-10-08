@@ -28,5 +28,6 @@ export const eventBySlug = (slug: string) => movieEvents.find(e => e.slug === sl
 export const eventById = (id: string) => movieEvents.find(e => e.id === id);
 export const isPast = (event: MovieEvent, now = Date.now()) => Date.parse(event.startsAt) <= now || event.status === 'finished';
 export const canBook = (event: MovieEvent) => !(process.env.NODE_ENV === 'production' && event.demo) && !isPast(event) && event.status === 'active' && event.saleStatus === 'open';
+export const canSelectSeats = (event:MovieEvent) => !isPast(event) && event.status==='active';
 export const money = (value: number) => `${new Intl.NumberFormat('ru-RU').format(value)} ₽`;
 export const dateLabel = (event: MovieEvent) => new Intl.DateTimeFormat('ru-RU', {day:'numeric', month:'long', timeZone:'Asia/Irkutsk'}).format(new Date(event.startsAt));

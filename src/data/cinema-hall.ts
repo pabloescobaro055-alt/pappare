@@ -17,9 +17,13 @@ export const cinemaHallConfig = {
   tables: positions.map(([x,y,rotation], i): HallTable => ({
     id: `table-${i+1}`, number:i+1, shape:'round', orientation:i===9?'vertical':'horizontal', x,y,rotation,
     seats:[1,2].map(n=>({id:`T${String(i+1).padStart(2,'0')}-S${n}`,number:n,x:i===9?0:(n===1?-22:22),y:i===9?(n===1?-22:22):0})),
-  })),
+  })).sort((a,b)=>a.y-b.y||a.x-b.x).map((table,index)=>({...table,number:index+1})),
 };
-export const seatIds = cinemaHallConfig.tables.flatMap(t=>t.seats.map(s=>s.id));
-export const seatLabel = (id: string) => `Стол ${Number(id.slice(1,3))} · место ${id.slice(-1)}`;
+// Internal IDs and their order stay stable when the visible table numbers change.
+export const seatIds = cinemaHallConfig.tables.flatMap(t=>t.seats.map(s=>s.id)).sort();
+export const seatLabel = (id: string) => {
+  const table=cinemaHallConfig.tables.find(t=>t.seats.some(s=>s.id===id));
+  return `Стол ${table?.number??'?'} · место ${id.slice(-1)}`;
+};
 export type SeatState = 'available' | 'held' | 'sold' | 'disabled';
 export type Seat = { id: string; status: SeatState };
