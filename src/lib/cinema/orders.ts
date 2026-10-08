@@ -1,4 +1,5 @@
 import {loadEvent} from './events';
+import {seatPrice,selectionTotal} from '@/data/cinema-pricing';
 import type {MovieEvent} from '@/data/cinema';
 import { randomBytes, createHash } from 'node:crypto';
 import { canBook, isPast, eventById, money, dateLabel } from '@/data/cinema';
@@ -7,7 +8,7 @@ import { transaction, cinemaDatabaseUrl, type Connection } from './database';
 
 export class CinemaError extends Error { constructor(message:string, public status=400){super(message);} }
 export type PaymentData = { mode:'demo'|'manual'|'provider'; url?:string; qrUrl?:string; providerId?:string; source?:'admin'; note?:string };
-export type CinemaOrder = {id:string;eventId:string;name:string;phone:string;telegram:string;total:number;status:string;createdAt:number;expiresAt:number;seatIds:string[];payment:PaymentData};
+export type CinemaOrder = {id:string;eventId:string;name:string;phone:string;telegram:string;total:number;status:string;createdAt:number;expiresAt:number;seatIds:string[];seatPrices:Record<string,number>;payment:PaymentData};
 export const demoMode = ()=>process.env.CINEMA_DEMO !== 'false';
 export async function expire(db:Connection, now=Date.now()) {
   await db.query("UPDATE cinema_seats SET status='available',hold_order_id=NULL,hold_until=NULL WHERE status='held' AND hold_until<=$1",[now]);
@@ -17,7 +18,21 @@ async function read(db:Connection,id:string):Promise<CinemaOrder> {
   const [r] = await db.query('SELECT * FROM cinema_orders WHERE id=$1',[id]);
   if (!r) throw new CinemaError('Заказ не найден',404);
   const seats = await db.query('SELECT seat_id FROM cinema_order_seats WHERE order_id=$1 ORDER BY seat_id',[id]);
-  return {id:String(r.id),eventId:String(r.event_id),name:String(r.customer_name),phone:String(r.phone),telegram:String(r.telegram),total:Number(r.total_amount),status:String(r.status),createdAt:Number(r.created_at),expiresAt:Number(r.expires_at),seatIds:seats.map(s=>String(s.seat_id)),payment:JSON.parse(String(r.payment_data))};
+  const prices=await db.query('SELECT seat_id,price FROM cinema_order_prices WHERE order_id=$1',[id]);
+  const seatPrices=Object.fromEntries(prices.map(p=>[String(p.seat_id),Number(p.price)]));
+  // Orders created before table pricing had one uniform price; keep their original amount.
+  for(const seat of seats)seatPrices[String(seat.seat_id)] ??= Number(r.total_amount)/seats.length;
+  return {id:String(r.id),eventId:String(r.event_id),name:String(r.customer_name),phone:String(r.phone),telegram:String(r.telegram),total:Number(r.total_amount),status:String(r.status),createdAt:Number(r.created_at),expiresAt:Number(r.expires_at),seatIds:seats.map(s=>String(s.seat_id)),seatPrices,payment:JSON.parse(String(r.payment_data))};
+}
+async function quote(db:Connection,event:MovieEvent,selected:string[],expectedTotal:unknown){
+  const [override]=await db.query('SELECT data FROM cinema_event_overrides WHERE id=$1',[event.id]);
+  const current:MovieEvent=override?JSON.parse(String(override.data)):event;
+  const total=selectionTotal(current,selected);
+  if(expectedTotal!==undefined&&expectedTotal!==total)throw new CinemaError('Стоимость мест изменилась. Обновите цены и проверьте итог перед бронированием.',409);
+  return {event:current,total};
+}
+async function saveSeatPrices(db:Connection,id:string,event:MovieEvent,selected:string[]){
+  for(const seat of selected)await db.query('INSERT INTO cinema_order_prices(order_id,seat_id,price) VALUES($1,$2,$3)',[id,seat,seatPrice(event,seat)]);
 }
 export function notificationText(o:CinemaOrder,event?:MovieEvent) {
   const e = event || eventById(o.eventId);
@@ -54,6 +69,8 @@ export async function createOrder(body:Record<string,unknown>, ip:string) {
       if(old.eventId!==event.id || old.phone!==phone || old.name!==name || [...old.seatIds].sort().join()!==[...selected].sort().join()) throw new CinemaError('Ключ запроса уже использован',409);
       return old;
     }
+    const priced=await quote(db,event,selected,body.expectedTotal);
+    if(!canBook(priced.event))throw new CinemaError('Продажи на этот киноужин закрыты');
     const now=Date.now(), rateId=createHash('sha256').update(ip).digest('hex');
     await db.query('DELETE FROM cinema_rate_limits WHERE reset_at<=$1',[now]);
     const [rate]=await db.query('SELECT count FROM cinema_rate_limits WHERE id=$1',[rateId]);
@@ -64,7 +81,8 @@ export async function createOrder(body:Record<string,unknown>, ip:string) {
     if(!Number.isFinite(hold)||hold<=0||hold>60) throw new Error('Invalid hold duration');
     const id=`PC-${randomBytes(24).toString('hex')}`;
     const expires=now+hold*60000;
-    await db.query('INSERT INTO cinema_orders(id,event_id,customer_name,phone,telegram,total_amount,status,created_at,expires_at,request_key) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)',[id,event.id,name,phone,telegram,event.pricePerSeat*selected.length,'pending',now,expires,key]);
+    await db.query('INSERT INTO cinema_orders(id,event_id,customer_name,phone,telegram,total_amount,status,created_at,expires_at,request_key) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)',[id,event.id,name,phone,telegram,priced.total,'pending',now,expires,key]);
+    await saveSeatPrices(db,id,priced.event,selected);
     for(const seat of selected) {
       await db.query("UPDATE cinema_seats SET status='held',hold_order_id=$1,hold_until=$2 WHERE event_id=$3 AND id=$4",[id,expires,event.id,seat]);
       await db.query('INSERT INTO cinema_order_seats(order_id,seat_id) VALUES($1,$2)',[id,seat]);
@@ -106,8 +124,11 @@ export async function reserveByAdmin(body:Record<string,unknown>) {
  if(existing){const old=await read(db,String(existing.id));if(old.eventId!==event.id||old.name!==name||old.phone!==phone||old.seatIds.slice().sort().join()!==selected.slice().sort().join())throw new CinemaError('Ключ уже использован',409);return old;}
  const available=await db.query("SELECT id FROM cinema_seats WHERE event_id=$1 AND status='available'",[event.id]);
  if(selected.some(id=>!available.some(r=>r.id===id)))throw new CinemaError('Места уже заняты. Обновите схему.',409);
+ const priced=await quote(db,event,selected,body.expectedTotal);
+ if(isPast(priced.event))throw new CinemaError('Киноужин недоступен');
  const id='PC-'+randomBytes(24).toString('hex'),now=Date.now();
- await db.query('INSERT INTO cinema_orders(id,event_id,customer_name,phone,telegram,total_amount,status,created_at,expires_at,request_key) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)',[id,event.id,name,phone,'',event.pricePerSeat*selected.length,'reserved',now,Date.parse(event.startsAt),key]);
+ await db.query('INSERT INTO cinema_orders(id,event_id,customer_name,phone,telegram,total_amount,status,created_at,expires_at,request_key) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)',[id,event.id,name,phone,'',priced.total,'reserved',now,Date.parse(event.startsAt),key]);
+ await saveSeatPrices(db,id,priced.event,selected);
  for(const seat of selected){await db.query("UPDATE cinema_seats SET status='sold',hold_order_id=$1,hold_until=NULL WHERE event_id=$2 AND id=$3",[id,event.id,seat]);await db.query('INSERT INTO cinema_order_seats(order_id,seat_id) VALUES($1,$2)',[id,seat]);}
  const order=await read(db,id);await enqueue(db,order);return order;});
 }

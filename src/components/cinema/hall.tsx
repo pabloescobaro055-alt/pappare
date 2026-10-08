@@ -1,9 +1,11 @@
 'use client';
+import {money} from '@/data/cinema';
+
 import {useRef,useState} from 'react';
 import {Minus,Plus,RotateCcw} from 'lucide-react';
 import {cinemaHallConfig as config,seatLabel,type Seat} from '@/data/cinema-hall';
 import {cinemaViews,type CinemaViewId} from '@/data/cinema-views';
-export function CinemaHall({seats,selected,onToggle,locked=false,price,onView}:{seats:Seat[];selected:string[];onToggle:(id:string)=>void;locked?:boolean;price:number;onView:(id:CinemaViewId)=>void}) {
+export function CinemaHall({seats,selected,onToggle,locked=false,price,tablePrices,onView}:{seats:Seat[];selected:string[];onToggle:(id:string)=>void;locked?:boolean;price:number;tablePrices?:Record<string,number>;onView:(id:CinemaViewId)=>void}) {
   const [zoom,setZoom]=useState(1),[active,setActive]=useState<number|null>(null);
   const scroll=useRef<HTMLDivElement>(null),drag=useRef<{x:number;y:number;left:number;top:number}|null>(null);
   const state=(id:string)=>selected.includes(id)?'selected':seats.find(s=>s.id===id)?.status||'disabled';
@@ -19,16 +21,17 @@ export function CinemaHall({seats,selected,onToggle,locked=false,price,onView}:{
         <text transform="translate(180 184) rotate(-46)" textAnchor="middle" className="screen-label">ЭКРАН</text>
         <path d="M530 182Q580 220 599 291" className="walking-path"/><text x="570" y="221" className="hall-caption">проход</text>
         <g className="plants" aria-hidden="true">{[[355,264],[630,269]].map(([x,y],i)=><g key={i} transform={`translate(${x} ${y})`}><circle r="15"/><ellipse rx="8" ry="21" transform="rotate(35)"/><ellipse rx="8" ry="21" transform="rotate(-45)"/></g>)}</g>
-        {config.tables.map(table=><g key={table.id} transform={`translate(${table.x} ${table.y}) rotate(${table.rotation})`} className={`hall-table ${active===table.number?'table-active':''}`}>
-          <g role="button" tabIndex={0} aria-label={`Стол ${table.number}, два места`} onClick={()=>setActive(table.number)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setActive(table.number);}}}>
+        {config.tables.map(table=>{const cost=tablePrices?.[table.id]??price;return <g key={table.id} transform={`translate(${table.x} ${table.y}) rotate(${table.rotation})`} className={`hall-table ${active===table.number?'table-active':''}`}>
+          <g role="button" tabIndex={0} aria-label={`Стол ${table.number}, два места, ${cost} рублей за место`} onClick={()=>setActive(table.number)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setActive(table.number);}}}>
             <rect x={table.orientation==='vertical'?-30:-44} y={table.orientation==='vertical'?-44:-30} width={table.orientation==='vertical'?60:88} height={table.orientation==='vertical'?88:60} rx="30" className="table-top"/>
             <text className="table-number" x={table.orientation==='vertical'?40:0} y={table.orientation==='vertical'?0:-42} textAnchor="middle" dominantBaseline="central">{String(table.number).padStart(2,'0')}</text>
+            <text className="table-price" x="0" y={table.orientation==='vertical'?-56:38} textAnchor="middle">{money(cost)}</text>
           </g>
-          {table.seats.map(seat=>{const status=state(seat.id),disabled=locked||!['available','selected'].includes(status);return <g key={seat.id} transform={`translate(${seat.x} ${seat.y})`} className={`hall-seat seat-${status}`} role="button" tabIndex={0} aria-disabled={disabled} aria-pressed={status==='selected'} aria-label={`${seatLabel(seat.id)}, ${disabled?'место недоступно для выбора':{available:'свободно',selected:'выбрано вами',held:'временно забронировано',sold:'занято',disabled:'недоступно'}[status]}${price>0?`, цена ${price} рублей`:''}`} onClick={()=>{setActive(table.number);if(!disabled)onToggle(seat.id);}} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();if(!disabled)onToggle(seat.id);}if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();const nodes=Array.from(e.currentTarget.ownerSVGElement!.querySelectorAll<SVGGElement>('.hall-seat'));const i=nodes.indexOf(e.currentTarget);nodes[(i+(['ArrowLeft','ArrowUp'].includes(e.key)?nodes.length-1:1))%nodes.length]?.focus();}}}>
+          {table.seats.map(seat=>{const status=state(seat.id),disabled=locked||!['available','selected'].includes(status);return <g key={seat.id} transform={`translate(${seat.x} ${seat.y})`} className={`hall-seat seat-${status}`} role="button" tabIndex={0} aria-disabled={disabled} aria-pressed={status==='selected'} aria-label={`${seatLabel(seat.id)}, ${disabled?'место недоступно для выбора':{available:'свободно',selected:'выбрано вами',held:'временно забронировано',sold:'занято',disabled:'недоступно'}[status]}${cost>0?`, цена ${cost} рублей`:''}`} onClick={()=>{setActive(table.number);if(!disabled)onToggle(seat.id);}} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();if(!disabled)onToggle(seat.id);}if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();const nodes=Array.from(e.currentTarget.ownerSVGElement!.querySelectorAll<SVGGElement>('.hall-seat'));const i=nodes.indexOf(e.currentTarget);nodes[(i+(['ArrowLeft','ArrowUp'].includes(e.key)?nodes.length-1:1))%nodes.length]?.focus();}}}>
             <title>{seatLabel(seat.id)}</title><circle r="21" fill="transparent" stroke="none"/><circle className="seat-cushion" r="17"/>
             <text textAnchor="middle" dominantBaseline="central" className="seat-symbol">{status==='selected'?'✓':status==='sold'?'×':status==='held'?'–':status==='disabled'?'×':seat.number}</text>
           </g>;})}
-        </g>)}
+        </g>;})}
         {cinemaViews.map(view=><g key={view.id} className="hall-viewpoint" transform={`translate(${view.x} ${view.y})`} role="button" tabIndex={0} aria-label={`Посмотреть видео и фото: ${view.label.toLowerCase()}`} onClick={()=>onView(view.id)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onView(view.id);}}}>
           <title>Нажмите, чтобы посмотреть видео и фото зала отсюда</title>
           <circle r="25" fill="transparent"/>

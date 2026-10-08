@@ -20,7 +20,7 @@ export async function GET(request:NextRequest,context:Context) {
     if(p[0]==='admin'){admin(request);return json({events:await loadEvents(),orders:request.nextUrl.searchParams.get('eventId')?await adminOrders(request.nextUrl.searchParams.get('eventId')!):[]});}
     if(p[0]==='media'&&p.length===2){const rows=await transaction(db=>db.query('SELECT data FROM cinema_media WHERE id=$1',[p[1]]));if(!rows.length)return json({message:'Фото не найдено'},404);return new NextResponse(Buffer.from(String(rows[0].data),'base64'),{headers:{'Content-Type':'image/webp','Cache-Control':'public,max-age=31536000,immutable','X-Content-Type-Options':'nosniff'}});}
     if(p[0]==='events'&&p.length===1) return json({events:await Promise.all((await loadEvents()).filter(e=>!isPast(e)).map(async e=>({...e,available:(await seatsFor(e.id)).filter(s=>s.status==='available').length})))});
-    if(p[0]==='events'&&p[2]==='seats') return json({seats:await seatsFor(p[1])});
+    if(p[0]==='events'&&p[2]==='seats') return json({seats:await seatsFor(p[1]),event:await loadEvent(p[1])});
     if(p[0]==='orders'&&p.length===2) {const order=await getOrder(p[1]);return json({order,event:await loadEvent(order.eventId)});}
     return json({message:'Не найдено'},404);
   }catch(e){return error(e);}

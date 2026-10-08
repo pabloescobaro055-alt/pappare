@@ -70,3 +70,23 @@ test('Admin API denies missing credentials and foreign origin; uploads only imag
  const result=await POST(new NextRequest('http://localhost/api/cinema/admin/photo',{method:'POST',headers:{authorization:'Bearer '+key},body:pixels}),ctx(['admin','photo']));assert.equal(result.status,200);const {url}=await result.json();const image=await GET(new NextRequest('http://localhost'+url),ctx(['media',url.split('/').pop()]));assert.equal(image.headers.get('content-type'),'image/webp');
  delete process.env.CINEMA_ADMIN_SECRET;
 });
+
+test('Table prices: mixed tables, stale quotes, immutable paid orders and validation',async()=>{
+ const {saveEvent,loadEvent}=await import('../src/lib/cinema/events');
+ const {selectionTotal,eventPriceLabel}=await import('../src/data/cinema-pricing');
+ const e={...event,id:'table-pricing-event',slug:'table-pricing-event',date:'2099-10-11',time:'18:00',pricePerSeat:2500,tablePrices:{'table-1':3000,'table-5':2000}};
+ const saved=await saveEvent(e);assert.equal((await loadEvent(e.id))?.tablePrices?.['table-1'],3000);
+ assert.equal(selectionTotal(saved,[seatIds[0],seatIds[1],seatIds[8]]),8000);assert.match(eventPriceLabel(saved),/2\s000 ₽–3\s000 ₽/);
+ const input={...body([seatIds[0],seatIds[1],seatIds[8]]),eventId:e.id,total:1,expectedTotal:8000};
+ await assert.rejects(reserveByAdmin({...input,expectedTotal:7500}),/Стоимость мест изменилась/);
+ const first=await reserveByAdmin(input);assert.equal(first.total,8000);assert.deepEqual(first.seatPrices,{[seatIds[0]]:3000,[seatIds[1]]:3000,[seatIds[8]]:2000});
+ await markAdminPaid(first.id,'Проверенный чек 321');
+ await saveEvent({...e,tablePrices:{'table-1':3500,'table-5':1800}});
+ const unchanged=await getOrder(first.id);assert.equal(unchanged.total,8000);assert.deepEqual(unchanged.seatPrices,first.seatPrices);
+ assert.equal((await reserveByAdmin(input)).id,first.id);
+ const next=await reserveByAdmin({...body([seatIds[9],seatIds[2]]),eventId:e.id,expectedTotal:4300});assert.equal(next.total,4300);assert.equal(next.seatPrices[seatIds[9]],1800);assert.equal(next.seatPrices[seatIds[2]],2500);
+ for(const prices of [{'table-1':0},{'table-1':-100},{'table-1':1.5},{'table-1':100001},{'table-99':2500}])await assert.rejects(saveEvent({...e,tablePrices:prices}),/Цена места/);
+ const pub={...e,id:'table-pricing-public',slug:'table-pricing-public',saleStatus:'open' as const,demo:true};await saveEvent(pub);
+ await transaction(db=>db.query('UPDATE cinema_event_overrides SET data=$1 WHERE id=$2',[JSON.stringify(pub),pub.id]));
+ const publicOrder=await createOrder({...body([seatIds[0],seatIds[8],seatIds[2]]),eventId:pub.id,expectedTotal:7500,total:1},'mixed-public');assert.equal(publicOrder.total,7500);assert.equal(publicOrder.seatPrices[seatIds[0]],3000);
+});

@@ -1,3 +1,4 @@
+import {eventPriceLabel} from '@/data/cinema-pricing';
 import {loadEvents} from '@/lib/cinema/events';
 import Link from 'next/link';
 import {ArrowUpRight,Utensils,Film,Wine} from 'lucide-react';
@@ -15,7 +16,7 @@ export default async function CinemaLanding() {
       <div className="hero-shade"/><div className="hero-content"><div className="eyebrow">PAPPARE PRESENTS <span/> КИНО & ВКУС</div>
       <p className="hero-kicker">Киноужин в PAPPARE</p><h1>Любимое кино.<br/><em>На вкус.</em></h1>
       <p className="hero-description">Когда история на экране<br/>продолжается за вашим столом.</p>
-      {hero&&<div className="hero-event"><div><span className="eyebrow">{isPast(hero)?'ПРОШЕДШИЙ КИНОУЖИН':'БЛИЖАЙШИЙ КИНОУЖИН'}</span><h2>{hero.title}</h2><p>{dateLabel(hero)} · {hero.time}{hero.pricePerSeat>0&&<> <span className="hero-dot">/</span> {money(hero.pricePerSeat)} за гостя</>}</p></div><Button asChild variant="warm"><Link href={`/kino/${hero.slug}${canBook(hero)?'/seats':''}`}>{canBook(hero)?'Выбрать места':'Смотреть меню'}<ArrowUpRight size={18}/></Link></Button></div>}
+      {hero&&<div className="hero-event"><div><span className="eyebrow">{isPast(hero)?'ПРОШЕДШИЙ КИНОУЖИН':'БЛИЖАЙШИЙ КИНОУЖИН'}</span><h2>{hero.title}</h2><p>{dateLabel(hero)} · {hero.time}{hero.pricePerSeat>0&&<> <span className="hero-dot">/</span> {eventPriceLabel(hero)} за гостя</>}</p></div><Button asChild variant="warm"><Link href={`/kino/${hero.slug}${canBook(hero)?'/seats':''}`}>{canBook(hero)?'Выбрать места':'Смотреть меню'}<ArrowUpRight size={18}/></Link></Button></div>}
       </div><div className="hero-bottom"><span>ИРКУТСК · ПЕРЕУЛОК БОГДАНОВА, 4</span><a href="#about">Откройте новый вечер ↓</a></div>
     </section>
     <section className="cinema-intro cinema-container" id="about"><div><span className="eyebrow">НЕ ПРОСТО СМОТРЕТЬ</span><h2>Почувствовать<br/><em>каждую сцену.</em></h2></div><div><p>{cinemaCopy.intro}</p><div className="experience"><span><Film size={20}/>Любимое кино</span><span><Utensils size={20}/>Авторские подачи</span><span><Wine size={20}/>Тёплая компания</span></div></div></section>

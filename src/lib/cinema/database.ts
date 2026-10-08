@@ -56,6 +56,7 @@ const schema = [
   `CREATE TABLE IF NOT EXISTS cinema_orders (id TEXT PRIMARY KEY, event_id TEXT NOT NULL REFERENCES movie_events(id), customer_name TEXT NOT NULL, phone TEXT NOT NULL, telegram TEXT NOT NULL, total_amount INTEGER NOT NULL, status TEXT NOT NULL, created_at BIGINT NOT NULL, expires_at BIGINT NOT NULL, request_key TEXT UNIQUE NOT NULL, payment_data TEXT NOT NULL DEFAULT '{}')`,
   `CREATE TABLE IF NOT EXISTS cinema_seats (event_id TEXT NOT NULL REFERENCES movie_events(id), id TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'available', hold_order_id TEXT REFERENCES cinema_orders(id), hold_until BIGINT, PRIMARY KEY(event_id,id))`,
   `CREATE TABLE IF NOT EXISTS cinema_order_seats (order_id TEXT NOT NULL REFERENCES cinema_orders(id), seat_id TEXT NOT NULL, PRIMARY KEY(order_id,seat_id))`,
+  `CREATE TABLE IF NOT EXISTS cinema_order_prices (order_id TEXT NOT NULL REFERENCES cinema_orders(id), seat_id TEXT NOT NULL, price INTEGER NOT NULL, PRIMARY KEY(order_id,seat_id))`,
   `CREATE TABLE IF NOT EXISTS cinema_rate_limits (id TEXT PRIMARY KEY, count INTEGER NOT NULL, reset_at BIGINT NOT NULL)`,
   `CREATE TABLE IF NOT EXISTS cinema_notifications (id TEXT PRIMARY KEY, order_id TEXT NOT NULL REFERENCES cinema_orders(id), text TEXT NOT NULL, delivered INTEGER NOT NULL DEFAULT 0)`,
 ];

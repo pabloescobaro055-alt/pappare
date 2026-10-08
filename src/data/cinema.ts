@@ -2,6 +2,7 @@ export type MovieEvent = {
   id: string; slug: string; title: string; date: string; time: string;
   startsAt: string; image: string; heroImage: string; shortDescription: string;
   description: string; menuDescription: string; pricePerSeat: number;
+  tablePrices?: Record<string, number>;
   status: 'active' | 'upcoming' | 'finished' | 'sold_out'; saleStatus: 'open' | 'closed';
   venue: string; demo: boolean; duration?: string; age?: string;
   menuCourses?: { category: string; name: string }[];
