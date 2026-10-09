@@ -49,6 +49,9 @@ async function rawTransaction<T>(fn:(db:Connection)=>Promise<T>):Promise<T> {
   return promise;
 }
 const schema = [
+  `CREATE TABLE IF NOT EXISTS cinema_admin_sessions (id TEXT PRIMARY KEY, expires_at BIGINT NOT NULL)`,
+  `CREATE TABLE IF NOT EXISTS cinema_admin_login_limits (id TEXT PRIMARY KEY, count INTEGER NOT NULL, reset_at BIGINT NOT NULL)`,
+  `CREATE TABLE IF NOT EXISTS cinema_admin_totp (id TEXT PRIMARY KEY, counter BIGINT NOT NULL)`,
   `CREATE TABLE IF NOT EXISTS reservation_security_limits (id TEXT PRIMARY KEY, count INTEGER NOT NULL, reset_at BIGINT NOT NULL)`,
   `CREATE TABLE IF NOT EXISTS cinema_order_contacts (order_id TEXT PRIMARY KEY, email TEXT NOT NULL)`,
   `CREATE TABLE IF NOT EXISTS cinema_payment_requests (order_id TEXT PRIMARY KEY, data TEXT NOT NULL)`,

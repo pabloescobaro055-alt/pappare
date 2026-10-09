@@ -29,7 +29,7 @@ const digest=(value:string)=>createHash('sha256').update(value).digest('hex');
 // Persistent on the VPS, process-local fallback for the authenticated delivery service.
 export async function guardReservation(ip:string,phone:string,time:string,nonce:string,connection?:Connection){
  const now=Date.now(),fingerprint=digest(phone+'|'+time.toLowerCase().replace(/\s+/g,' ').trim());
- const checks=[{id:'global',limit:20,window:600000},{id:'ip:'+digest(ip),limit:3,window:600000},{id:'phone:'+digest(phone),limit:2,window:1800000},{id:'cooldown:'+digest(phone),limit:1,window:60000},{id:'same:'+fingerprint,limit:1,window:1800000},{id:'token:'+digest(nonce),limit:1,window:1800000}];
+ const checks=[{id:'ip:'+digest(ip),limit:3,window:600000},{id:'phone:'+digest(phone),limit:2,window:1800000},{id:'cooldown:'+digest(phone),limit:1,window:60000},{id:'same:'+fingerprint,limit:1,window:1800000},{id:'token:'+digest(nonce),limit:1,window:1800000}];
  const persist=async(db:Connection)=>{
   await db.query('DELETE FROM reservation_security_limits WHERE reset_at<=$1',[now]);
   for(const c of checks){const [row]=await db.query('SELECT count FROM reservation_security_limits WHERE id=$1',[c.id]);if(row&&Number(row.count)>=c.limit)throw new ReservationSecurityError(c.id.startsWith('same:')?'Такая заявка уже отправлена. Дождитесь звонка администратора.':'Слишком частые заявки. Подождите или позвоните в ресторан.',429);}

@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "test:cinema": "tsx --test tests/cinema.test.ts tests/yookassa.test.ts",
-    "test:security": "tsx --test tests/reservations.test.ts tests/reservation-security.test.ts tests/telegram-webhook.test.ts"
+    "test:security": "tsx --test tests/reservations.test.ts tests/reservation-security.test.ts tests/telegram-webhook.test.ts tests/admin-auth.test.ts tests/content-security.test.ts"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",

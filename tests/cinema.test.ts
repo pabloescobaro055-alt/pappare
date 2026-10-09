@@ -66,11 +66,12 @@ test('Admin API denies missing credentials and foreign origin; uploads only imag
  const {NextRequest}=await import('next/server');const {GET,POST}=await import('../src/app/api/cinema/[...path]/route');
  const key='local-unit-tests-only-32-characters-secret';process.env.CINEMA_ADMIN_SECRET=key;
  const ctx=(path:string[])=>({params:Promise.resolve({path})});
+ const login=await POST(new NextRequest('http://localhost/api/cinema/admin/login',{method:'POST',headers:{origin:'http://localhost','content-type':'application/json'},body:JSON.stringify({key})}),ctx(['admin','login']));assert.equal(login.status,200);const cookie=login.headers.get('set-cookie')!.split(';')[0];
  assert.equal((await GET(new NextRequest('http://localhost/api/cinema/admin'),ctx(['admin']))).status,401);
  assert.equal((await POST(new NextRequest('http://localhost/api/cinema/admin/reserve',{method:'POST',headers:{origin:'https://foreign.invalid',host:'localhost',authorization:'Bearer '+key},body:'{}'}),ctx(['admin','reserve']))).status,403);
- assert.equal((await POST(new NextRequest('http://localhost/api/cinema/admin/photo',{method:'POST',headers:{authorization:'Bearer '+key},body:'not an image'}),ctx(['admin','photo']))).status,400);
+ assert.equal((await POST(new NextRequest('http://localhost/api/cinema/admin/photo',{method:'POST',headers:{origin:'http://localhost',cookie,'content-type':'image/png'},body:'not an image'}),ctx(['admin','photo']))).status,400);
  const sharp=(await import('sharp')).default;const pixels=await sharp({create:{width:10,height:10,channels:3,background:'#abc'}}).png().toBuffer();
- const result=await POST(new NextRequest('http://localhost/api/cinema/admin/photo',{method:'POST',headers:{authorization:'Bearer '+key},body:pixels}),ctx(['admin','photo']));assert.equal(result.status,200);const {url}=await result.json();const image=await GET(new NextRequest('http://localhost'+url),ctx(['media',url.split('/').pop()]));assert.equal(image.headers.get('content-type'),'image/webp');
+ const result=await POST(new NextRequest('http://localhost/api/cinema/admin/photo',{method:'POST',headers:{origin:'http://localhost',cookie,'content-type':'image/png'},body:pixels}),ctx(['admin','photo']));assert.equal(result.status,200);const {url}=await result.json();const image=await GET(new NextRequest('http://localhost'+url),ctx(['media',url.split('/').pop()]));assert.equal(image.headers.get('content-type'),'image/webp');
  delete process.env.CINEMA_ADMIN_SECRET;
 });
 

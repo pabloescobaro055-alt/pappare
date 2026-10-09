@@ -23,6 +23,7 @@ function validPhone(phone: string) {
 }
 
 function parseGuests(value: unknown) {
+  if(typeof value!=='number'&&(typeof value!=='string'||!/^\d{1,2}$/.test(value.trim())))return undefined;
   const guests = Number(value);
   return Number.isInteger(guests) ? guests : undefined;
 }
@@ -68,7 +69,8 @@ async function handlePost(request: NextRequest) {
   }
 
   if(!relayed&&!verifyFormToken(body.formToken,request.cookies.get('pappare-reservation')?.value))return NextResponse.json({ok:false,message:'Обновите форму и повторите отправку.'},{status:403});
-  const submittedAt = Number(body.submittedAt);
+  if(['time','comment','company'].some(field=>body[field]!==undefined&&body[field]!==null&&typeof body[field]!=='string'))return NextResponse.json({ok:false,message:'Проверьте поля заявки.'},{status:400});
+  const submittedAt = typeof body.submittedAt==='number'?body.submittedAt:NaN;
   if (!Number.isFinite(submittedAt) || Date.now() - submittedAt < 2500) {
     return NextResponse.json(
       { ok: false, message: "Попробуйте отправить форму еще раз." },

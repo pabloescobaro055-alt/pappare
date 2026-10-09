@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {randomUUID} from 'node:crypto';
+import {randomUUID,createHash} from 'node:crypto';
 import {NextRequest} from 'next/server';
 import {POST,GET} from '../src/app/api/reservations/route';
 import {formToken,relayHeaders,verifyRelay,verifyFormToken,requestIp,guardReservation} from '../src/lib/reservation-security';
@@ -16,7 +16,7 @@ test('reservation abuse protection without external notifications',async t=>{
  function request(extra:Record<string,unknown>={},headers:Record<string,string>={}){const value=token();return new NextRequest('https://pappare.ru/api/reservations',{method:'POST',headers:{origin:'https://pappare.ru','content-type':'application/json','x-real-ip':'192.0.2.'+(++n),cookie:'pappare-reservation='+value,...headers},body:JSON.stringify({name:'Ирина',phone:'+79149386661',time:'19:00',guests:2,company:'',submittedAt:Date.now()-10000,formToken:value,...extra})});}
  try{
   await t.test('bad names, fake phone, malformed time and guests cannot send messages',async()=>{
-   for(const body of [{name:'t'},{phone:'+79990000000'},{time:'test'},{guests:31},{guests:1.5},{guests:'wrong'},{name:'x'.repeat(81)},{comment:'x'.repeat(501)},{company:'bot'}])assert.equal((await POST(request(body))).status,400);
+   for(const body of [{name:'t'},{phone:'+79990000000'},{time:'test'},{time:{}},{comment:[]},{guests:true},{guests:[1]},{guests:31},{guests:1.5},{guests:'wrong'},{name:'x'.repeat(81)},{comment:'x'.repeat(501)},{company:'bot'}])assert.equal((await POST(request(body))).status,400);
    assert.equal(sent,0);
   });
   await t.test('origin, cookie and signature must all be valid',async()=>{
@@ -61,7 +61,7 @@ test('reservation abuse protection without external notifications',async t=>{
    const checks=await Promise.allSettled([transaction(db=>guardReservation('198.51.100.100','+79149386001','21:00','first',db)),transaction(db=>guardReservation('198.51.100.101','+79149386001','21:00','second',db))]);
    assert.equal(checks.filter(r=>r.status==='fulfilled').length,1);assert.equal(checks.filter(r=>r.status==='rejected').length,1);
    await assert.rejects(transaction(db=>guardReservation('198.51.100.102','+79149386001','21:00','third',db)));
-   const rows=await transaction(db=>db.query('SELECT count FROM reservation_security_limits WHERE id=$1',['global']));assert.equal(Number(rows[0].count),1);
+   const id='phone:'+createHash('sha256').update('+79149386001').digest('hex');const rows=await transaction(db=>db.query('SELECT count FROM reservation_security_limits WHERE id=$1',[id]));assert.equal(Number(rows[0].count),1);
   });
  }finally{globalThis.fetch=originalFetch;}
 });

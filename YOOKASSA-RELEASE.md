@@ -15,7 +15,7 @@ npm run test:cinema &&
 npm run build
 ```
 
-Не заменять существующие CINEMA_DATABASE_URL, CINEMA_ADMIN_SECRET и настройки Telegram.
+Не заменять существующие CINEMA_DATABASE_URL, CINEMA_ADMIN_SECRET и настройки Telegram. После обновления безопасности настроить двухфакторный вход и сервисный ключ по AUDIT-REMEDIATION.md.
 Сделать защищённую копию файла конфигурации перед редактированием:
 
 ```bash

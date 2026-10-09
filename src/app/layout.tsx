@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import {headers} from 'next/headers';
+export const dynamic='force-dynamic';
 import { Cormorant_Garamond, Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -65,16 +67,17 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const nonce=(await headers()).get('x-nonce')||undefined;
   return (
     <html lang="ru">
       <body className={`${inter.variable} ${cormorant.variable} font-sans`}>
         <ThemeProvider>
-          <YandexMetrika />
+          <YandexMetrika nonce={nonce}/>
           {children}
         </ThemeProvider>
       </body>

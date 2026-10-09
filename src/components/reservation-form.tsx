@@ -75,7 +75,7 @@ export function ReservationForm({ dark = false }: { dark?: boolean }) {
   return (
     <form
       onSubmit={onSubmit}
-      className={`grid gap-3 rounded-lg p-4 md:grid-cols-2 md:gap-4 md:p-8 ${
+      className={`ym-disable-keys grid gap-3 rounded-lg p-4 md:grid-cols-2 md:gap-4 md:p-8 ${
         dark ? "border border-cream/12 bg-cream/8 backdrop-blur" : "bg-linen/55 shadow-soft"
       }`}
     >
@@ -92,7 +92,7 @@ export function ReservationForm({ dark = false }: { dark?: boolean }) {
             placeholder={placeholder}
             min={type === "number" ? 1 : undefined}
             max={type === "number" ? 30 : undefined}
-            className={`h-11 rounded-full border px-5 outline-none transition md:h-12 ${input}`}
+            className={`ym-disable-keys h-11 rounded-full border px-5 outline-none transition md:h-12 ${input}`}
           />
         </label>
       ))}
@@ -102,7 +102,7 @@ export function ReservationForm({ dark = false }: { dark?: boolean }) {
           name="comment"
           maxLength={500}
           placeholder="Столик у окна"
-          className={`min-h-20 rounded-lg border px-5 py-3 outline-none transition md:min-h-24 md:py-4 ${input}`}
+          className={`ym-disable-keys min-h-20 rounded-lg border px-5 py-3 outline-none transition md:min-h-24 md:py-4 ${input}`}
         />
       </label>
       <Button disabled={status === "loading"||!ready} variant="warm" className="md:col-span-2">
