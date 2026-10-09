@@ -2,20 +2,21 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { NextRequest } from "next/server";
 import { POST } from "../src/app/api/reservations/route";
+import {formToken,relayHeaders} from "../src/lib/reservation-security";
 import { DEFAULT_RESERVATION_RELAY, reservationRelayUrl } from "../src/lib/reservation-delivery";
 
 test("reservation delivery", async (t) => {
-  const keys = ["NODE_ENV", "VERCEL", "RESERVATION_RELAY_URL", "DATABASE_URL", "NOTIFICATION_CHANNEL", "TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID"];
+  const keys = ["NODE_ENV", "VERCEL", "RESERVATION_RELAY_URL", "DATABASE_URL", "NOTIFICATION_CHANNEL", "TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID","RESERVATION_RELAY_SECRET","CINEMA_DATABASE_URL"];
   const env = process.env as Record<string, string | undefined>;
   const saved = Object.fromEntries(keys.map(key => [key, env[key]]));
   const originalFetch = globalThis.fetch;
   let ip = 0;
-  function request(headers = {}) {
-    return new NextRequest("https://pappare.ru/api/reservations", {
-      method: "POST",
-      headers: { "content-type": "application/json", "x-forwarded-for": `test-${++ip}`, ...headers },
-      body: JSON.stringify({ name: "ТЕСТ", phone: "+70000000000", guests: 2, time: "19:00", company: "", submittedAt: Date.now() - 10000 }),
-    });
+  function request(headers:Record<string,string> = {}) {
+    const timestamp=Date.now;Date.now=()=>timestamp()-10000;const token=formToken();Date.now=timestamp;
+    const phone='+7914'+String(1000000+(++ip));
+    const raw=JSON.stringify({ name:'ТЕСТ',phone,guests:2,time:'19:00',company:'',submittedAt:Date.now()-10000,formToken:token });
+    const signed=env.VERCEL==='1'?relayHeaders(raw):{};
+    return new NextRequest('https://pappare.ru/api/reservations',{method:'POST',headers:{'content-type':'application/json','x-real-ip':'192.0.2.'+ip,origin:'https://pappare.ru',cookie:'pappare-reservation='+token,...signed,...headers},body:raw});
   }
   try {
     for (const key of keys) delete env[key];
@@ -56,7 +57,7 @@ test("reservation delivery", async (t) => {
 
     await t.test("relay loops stop before another network call", async () => {
       globalThis.fetch = async () => { assert.fail("unexpected recursive send"); };
-      assert.equal((await POST(request({ "x-pappare-relay-hop": "1" }))).status, 502);
+      assert.equal((await POST(request({ "x-pappare-relay-hop": "1" }))).status, 403);
     });
 
     await t.test("Vercel always delivers directly, even with a stale relay setting", async () => {
@@ -68,7 +69,7 @@ test("reservation delivery", async (t) => {
         assert.ok(init?.signal);
         return Response.json({ ok: true, result: { message_id: 123 } });
       };
-      assert.equal((await POST(request({ "x-pappare-relay-hop": "1" }))).status, 200);
+      assert.equal((await POST(request())).status, 200);
     });
 
     await t.test("Telegram timeout returns JSON failure instead of unhandled 500", async () => {

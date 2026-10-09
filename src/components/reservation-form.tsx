@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { CalendarDays } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -20,11 +20,14 @@ const fields = [
 export function ReservationForm({ dark = false }: { dark?: boolean }) {
   const [status, setStatus] = useState<Status>("idle");
   const [message, setMessage] = useState("");
-  const submittedAt = useMemo(() => Date.now(), []);
+  const [token,setToken]=useState(''),[ready,setReady]=useState(false);
+  async function prepareForm(){setReady(false);const response=await fetch('/api/reservations',{cache:'no-store'});const data=await response.json();if(!response.ok||!data.token)throw new Error(data.message||errorMessage);setToken(data.token);return data.token as string;}
+  useEffect(()=>{let live=true;let timer:ReturnType<typeof setTimeout>;void prepareForm().then(value=>{if(live)timer=setTimeout(()=>{if(live)setReady(true);},Math.max(0,2600-(Date.now()-Number(value.split('.')[0]))));}).catch(e=>{if(live){setStatus('error');setMessage(e.message);}});return()=>{live=false;clearTimeout(timer);};},[]);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formElement = event.currentTarget;
+    if(!ready||status==='loading')return;
 
     setStatus("loading");
     setMessage("");
@@ -37,7 +40,8 @@ export function ReservationForm({ dark = false }: { dark?: boolean }) {
       guests: String(form.get("guests") || ""),
       comment: String(form.get("comment") || ""),
       company: String(form.get("company") || ""),
-      submittedAt,
+      submittedAt:Number(token.split('.')[0]),
+      formToken:token,
     };
 
     try {
@@ -49,16 +53,17 @@ export function ReservationForm({ dark = false }: { dark?: boolean }) {
       const data = await response.json().catch(() => null);
 
       if (!response.ok || !data?.ok) {
-        throw new Error("Reservation request failed");
+        if(response.status===403||response.status===429)setReady(false);
+        throw new Error(data?.message||errorMessage);
       }
 
       setStatus("success");
       setMessage(successMessage);
       formElement.reset();
+      setReady(false);
     } catch (error) {
-      console.error("Reservation form submit failed", error);
       setStatus("error");
-      setMessage(errorMessage);
+      setMessage((error as Error).message||errorMessage);
     }
   }
 
@@ -82,6 +87,8 @@ export function ReservationForm({ dark = false }: { dark?: boolean }) {
             name={name}
             type={type}
             required={required}
+            minLength={name==='name'?2:name==='phone'?10:undefined}
+            maxLength={name==='name'||name==='time'?80:name==='phone'?24:undefined}
             placeholder={placeholder}
             min={type === "number" ? 1 : undefined}
             max={type === "number" ? 30 : undefined}
@@ -93,14 +100,17 @@ export function ReservationForm({ dark = false }: { dark?: boolean }) {
         Комментарий
         <textarea
           name="comment"
+          maxLength={500}
           placeholder="Столик у окна"
           className={`min-h-20 rounded-lg border px-5 py-3 outline-none transition md:min-h-24 md:py-4 ${input}`}
         />
       </label>
-      <Button disabled={status === "loading"} variant="warm" className="md:col-span-2">
+      <Button disabled={status === "loading"||!ready} variant="warm" className="md:col-span-2">
         <CalendarDays size={18} />
         {status === "loading" ? "Отправляем..." : "Отправить заявку"}
       </Button>
+      {status==='success'&&<p className="md:col-span-2">Не отправляйте повторную заявку — администратор свяжется с вами.</p>}
+      {status==='error'&&!ready&&<button type="button" onClick={()=>{setMessage('');void prepareForm().then(()=>{setTimeout(()=>{setReady(true);setStatus('idle');},2600);}).catch(e=>setMessage(e.message));}}>Обновить форму</button>}
       {message ? (
         <p
           className={`md:col-span-2 ${

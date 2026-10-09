@@ -5,7 +5,7 @@ let registration: Promise<void> | undefined;
 
 export function telegramWebhookSecret() {
   const configured = process.env.TELEGRAM_WEBHOOK_SECRET?.trim();
-  if (configured) return configured;
+  if (configured&&configured.length>=32&&!configured.includes('change-me')) return configured;
   const token = process.env.TELEGRAM_BOT_TOKEN;
   return token
     ? createHmac("sha256", token).update("pappare-telegram-webhook").digest("hex")

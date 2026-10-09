@@ -61,6 +61,7 @@ export async function createOrder(body:Record<string,unknown>, ip:string) {
   const phone = typeof body.phone==='string'?body.phone.trim():'';
   const telegram = typeof body.telegram==='string'?body.telegram.trim():'';
   const email=typeof body.email==='string'?body.email.trim().toLowerCase():'';
+  if(!demoMode()&&(/(\d)\1{5}/.test(phone.replace(/\D/g,''))||!/^[78]\d{10}$/.test(phone.replace(/\D/g,''))))throw new CinemaError('Укажите корректный номер телефона');
   if(process.env.PAYMENT_PROVIDER==='yookassa'&&!demoMode()&&(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||email.length>254||body.terms!==true))throw new CinemaError('Укажите email для чека и примите условия бронирования');
   if(name.length<2||name.length>80||!/^\+?[\d\s()\-]{10,24}$/.test(phone)||phone.replace(/\D/g,'').length<10||telegram.length>80) throw new CinemaError('Укажите имя и корректный телефон');
   if(typeof body.requestKey!=='string'||!/^[a-zA-Z0-9-]{20,80}$/.test(body.requestKey)) throw new CinemaError('Обновите страницу и повторите попытку');

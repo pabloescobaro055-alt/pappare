@@ -6,14 +6,14 @@ import { ensureTelegramWebhook, telegramWebhookSecret, TELEGRAM_WEBHOOK_URL } fr
 
 test("Telegram reservation buttons", async t => {
   const env = process.env as Record<string, string | undefined>;
-  const keys = ["NODE_ENV", "VERCEL", "TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID", "TELEGRAM_WEBHOOK_SECRET", "DATABASE_URL"];
+  const keys = ["NODE_ENV", "VERCEL", "TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID", "TELEGRAM_WEBHOOK_SECRET", "DATABASE_URL","TELEGRAM_ADMIN_IDS"];
   const saved = Object.fromEntries(keys.map(key => [key, env[key]]));
   const originalFetch = globalThis.fetch;
   const calls: { method: string; body: any }[] = [];
   function request(status = "called", secret = telegramWebhookSecret(), chat = "-100123") {
     return new NextRequest(TELEGRAM_WEBHOOK_URL, {
       method: "POST", headers: { "content-type": "application/json", "x-telegram-bot-api-secret-token": secret || "" },
-      body: JSON.stringify({ callback_query: { id: "callback-test", data: `reservation:${status}:123`, message: { message_id: 456, chat: { id: chat }, text: "🍽 Новая бронь #123\nИмя: Тест" } } }),
+      body: JSON.stringify({ callback_query: { from:{id:12345}, id: "callback-test", data: `reservation:${status}:123`, message: { message_id: 456, chat: { id: chat }, text: "🍽 Новая бронь #123\nИмя: Тест" } } }),
     });
   }
   try {
@@ -23,6 +23,7 @@ test("Telegram reservation buttons", async t => {
     env.TELEGRAM_BOT_TOKEN = "test-token";
     env.TELEGRAM_CHAT_ID = "-100123";
     globalThis.fetch = async (url, init) => {
+      if(String(url).endsWith("/getChatMember"))return Response.json({ok:true,result:{status:"administrator"}});
       calls.push({ method: String(url).split("/").pop()!, body: JSON.parse(String(init?.body)) });
       return Response.json({ ok: true });
     };
@@ -65,12 +66,16 @@ test("Telegram reservation buttons", async t => {
     }
 
     await t.test("repeated callback remains successful when text is already updated", async () => {
-      globalThis.fetch = async url => String(url).endsWith("/editMessageText")
+      globalThis.fetch = async url => String(url).endsWith("/getChatMember")?Response.json({ok:true,result:{status:"administrator"}}):String(url).endsWith("/editMessageText")
         ? Response.json({ ok: false, description: "Bad Request: message is not modified" }, { status: 400 })
         : Response.json({ ok: true });
       assert.equal((await POST(request())).status, 200);
     });
 
+    await t.test("non-admin chat participant cannot edit reservations",async()=>{
+      env.TELEGRAM_ADMIN_IDS='999999';globalThis.fetch=async(url,init)=>{calls.push({method:String(url).split('/').pop()!,body:JSON.parse(String(init?.body))});return Response.json({ok:true});};
+      assert.equal((await POST(request())).status,200);assert.equal(calls.some(c=>c.method==='editMessageText'),false);assert.equal(calls.at(-1)?.method,'answerCallbackQuery');calls.length=0;delete env.TELEGRAM_ADMIN_IDS;
+    });
     await t.test("network failure is not acknowledged as successful", async () => {
       globalThis.fetch = async () => { throw new TypeError("fetch failed"); };
       assert.equal((await POST(request())).status, 503);

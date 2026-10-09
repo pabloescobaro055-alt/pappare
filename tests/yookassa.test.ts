@@ -43,7 +43,7 @@ test('YooKassa checkout and authenticated notifications',async t=>{
  };
  const event={...movieEvents[0],id:'yoo-test',slug:'yoo-test',date:'2099-10-11',startsAt:'2099-10-11T18:00:00+08:00',tablePrices:{'table-1':3500}};
  await saveEvent(event);await setEventSales(event.id,true);
- const input=(seats:string[],extra={})=>({eventId:event.id,seatIds:seats,name:'Гость',phone:'+79140000000',email:'guest@example.ru',terms:true,requestKey:randomUUID(),...extra});
+ const input=(seats:string[],extra={})=>({eventId:event.id,seatIds:seats,name:'Гость',phone:'+79149386661',email:'guest@example.ru',terms:true,requestKey:randomUUID(),...extra});
  const succeed=(id:string)=>Object.assign(payments.get(id),{status:'succeeded',paid:true,receipt_registration:'succeeded'});
  try{
   await t.test('sales need explicit credentials and toggle; email and terms required',async()=>{

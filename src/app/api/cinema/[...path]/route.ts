@@ -1,6 +1,7 @@
 import {createHash,timingSafeEqual,randomUUID} from 'node:crypto';
 import {loadEvents,loadEvent,saveEvent,setEventSales} from '@/lib/cinema/events';
 import {onlineSalesEnabled} from '@/lib/cinema/payment-config';
+import {requestIp} from '@/lib/reservation-security';
 import {transaction,cinemaDatabaseUrl} from '@/lib/cinema/database';
 import {adminOrders,reserveByAdmin,cancelAdminReservation,markAdminPaid} from '@/lib/cinema/orders';
 import sharp from 'sharp';
@@ -65,9 +66,10 @@ export async function POST(request:NextRequest,context:Context) {
       await flushCinemaNotifications();return json({ok:true});
     }
     if(p[0]==='orders'&&p.length===1) {
+      if(origin!==expectedOrigin) return json({message:'Недопустимый источник запроса'},403);
       const raw=await request.text();if(raw.length>5000)throw new CinemaError('Слишком большой запрос');
       const body=JSON.parse(raw);if(!body||typeof body!=='object')throw new CinemaError('Некорректный запрос');
-      const order=await createOrder(body,request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()||'local');
+      const order=await createOrder(body,requestIp(request));
       await flushCinemaNotifications();return json({order},201);
     }
     if(p[0]==='orders'&&p.length===3) {
