@@ -3,6 +3,7 @@ export type MovieEvent = {
   startsAt: string; image: string; heroImage: string; shortDescription: string;
   description: string; menuDescription: string; pricePerSeat: number;
   tablePrices?: Record<string, number>;
+  bookingPaused?: boolean;
   status: 'active' | 'upcoming' | 'finished' | 'sold_out'; saleStatus: 'open' | 'closed';
   venue: string; demo: boolean; duration?: string; age?: string;
   menuCourses?: { category: string; name: string }[];
@@ -27,7 +28,7 @@ export const cinemaCopy = {
 export const eventBySlug = (slug: string) => movieEvents.find(e => e.slug === slug) || (slug === 'eat-pray-love' ? movieEvents.find(e => !isPast(e)) || movieEvents[0] : undefined);
 export const eventById = (id: string) => movieEvents.find(e => e.id === id);
 export const isPast = (event: MovieEvent, now = Date.now()) => Date.parse(event.startsAt) <= now || event.status === 'finished';
-export const canBook = (event: MovieEvent) => !(process.env.NODE_ENV === 'production' && event.demo) && !isPast(event) && event.status === 'active' && event.saleStatus === 'open';
-export const canSelectSeats = (event:MovieEvent) => !isPast(event) && event.status==='active';
+export const canBook = (event: MovieEvent) => !event.bookingPaused && !(process.env.NODE_ENV === 'production' && event.demo) && !isPast(event) && event.status === 'active' && event.saleStatus === 'open';
+export const canSelectSeats = (event:MovieEvent) => !event.bookingPaused && !isPast(event) && event.status==='active';
 export const money = (value: number) => `${new Intl.NumberFormat('ru-RU').format(value)} ₽`;
 export const dateLabel = (event: MovieEvent) => new Intl.DateTimeFormat('ru-RU', {day:'numeric', month:'long', timeZone:'Asia/Irkutsk'}).format(new Date(event.startsAt));

@@ -1,5 +1,6 @@
 import {createHash,timingSafeEqual,randomUUID} from 'node:crypto';
-import {loadEvents,loadEvent,saveEvent} from '@/lib/cinema/events';
+import {loadEvents,loadEvent,saveEvent,setEventSales} from '@/lib/cinema/events';
+import {onlineSalesEnabled} from '@/lib/cinema/payment-config';
 import {transaction,cinemaDatabaseUrl} from '@/lib/cinema/database';
 import {adminOrders,reserveByAdmin,cancelAdminReservation,markAdminPaid} from '@/lib/cinema/orders';
 import sharp from 'sharp';
@@ -19,7 +20,7 @@ function error(e:unknown) {if(e instanceof CinemaError)return json({message:e.me
 export async function GET(request:NextRequest,context:Context) {
   try {
     const p=(await context.params).path;
-    if(p[0]==='admin'){admin(request);return json({events:await loadEvents(),orders:request.nextUrl.searchParams.get('eventId')?await adminOrders(request.nextUrl.searchParams.get('eventId')!):[]});}
+    if(p[0]==='admin'){admin(request);return json({onlineSalesReady:onlineSalesEnabled(),events:await loadEvents(),orders:request.nextUrl.searchParams.get('eventId')?await adminOrders(request.nextUrl.searchParams.get('eventId')!):[]});}
     if(p[0]==='media'&&p.length===2){const rows=await transaction(db=>db.query('SELECT data FROM cinema_media WHERE id=$1',[p[1]]));if(!rows.length)return json({message:'Фото не найдено'},404);return new NextResponse(Buffer.from(String(rows[0].data),'base64'),{headers:{'Content-Type':'image/webp','Cache-Control':'public,max-age=31536000,immutable','X-Content-Type-Options':'nosniff'}});}
     if(p[0]==='events'&&p.length===1) return json({events:await Promise.all((await loadEvents()).filter(e=>!isPast(e)).map(async e=>({...e,available:(await seatsFor(e.id)).filter(s=>s.status==='available').length})))});
     if(p[0]==='events'&&p[2]==='seats') return json({seats:await seatsFor(p[1]),event:await loadEvent(p[1])});
@@ -51,6 +52,7 @@ export async function POST(request:NextRequest,context:Context) {
       }
       const raw=await request.text();if(raw.length>20000)throw new CinemaError('Слишком большой запрос');const body=JSON.parse(raw);
       if(p[1]==='event'){try{return json({event:await saveEvent(body)});}catch(e){throw new CinemaError((e as Error).message);}}
+      if(p[1]==='sales'){try{return json({event:await setEventSales(body.id,body.enabled)});}catch(e){throw new CinemaError((e as Error).message);}}
       if(p[1]==='reserve'){const order=await reserveByAdmin(body);await flushCinemaNotifications();return json({order});}
       if(p[1]==='cancel'){const order=await cancelAdminReservation(body.id);await flushCinemaNotifications();return json({order});}
       if(p[1]==='paid'){const order=await markAdminPaid(body.id,body.note);await flushCinemaNotifications();return json({order});}

@@ -13,8 +13,8 @@ process.env.YOOKASSA_SHOP_ID='1487524';
 process.env.YOOKASSA_SECRET_KEY='fake-test-secret';
 process.env.CINEMA_PUBLIC_ORIGIN='https://pappare.ru';
 delete process.env.YOOKASSA_TEST;
-import {movieEvents} from '../src/data/cinema';
-import {saveEvent,loadEvent} from '../src/lib/cinema/events';
+import {movieEvents,canBook,canSelectSeats} from '../src/data/cinema';
+import {saveEvent,loadEvent,setEventSales} from '../src/lib/cinema/events';
 import {createOrder,getOrder,seatsFor,expire,notificationText,adminOrders} from '../src/lib/cinema/orders';
 import {transaction} from '../src/lib/cinema/database';
 import {preparePayment} from '../src/lib/cinema/payments';
@@ -42,7 +42,7 @@ test('YooKassa checkout and authenticated notifications',async t=>{
   const data=payments.get(url.split('/').at(-1)!);assert.ok(data);return Response.json(data);
  };
  const event={...movieEvents[0],id:'yoo-test',slug:'yoo-test',date:'2099-10-11',startsAt:'2099-10-11T18:00:00+08:00',tablePrices:{'table-1':3500}};
- await saveEvent(event);
+ await saveEvent(event);await setEventSales(event.id,true);
  const input=(seats:string[],extra={})=>({eventId:event.id,seatIds:seats,name:'Гость',phone:'+79140000000',email:'guest@example.ru',terms:true,requestKey:randomUUID(),...extra});
  const succeed=(id:string)=>Object.assign(payments.get(id),{status:'succeeded',paid:true,receipt_registration:'succeeded'});
  try{
@@ -85,6 +85,22 @@ test('YooKassa checkout and authenticated notifications',async t=>{
    const order=await preparePayment(await createOrder(input(['T06-S1']),'background'));succeed(order.payment.providerId!);payments.get(order.payment.providerId!).receipt_registration='canceled';
    await reconcileYookassaPayments();assert.equal((await getOrder(order.id)).status,'paid');
    await syncYookassaPayment(await getOrder(order.id));const warnings=await transaction(db=>db.query('SELECT id FROM cinema_notifications WHERE id=$1',[order.id+':receipt-failed']));assert.equal(warnings.length,1);
+  });
+  await t.test('pause persists through edits; next evening has fresh seats and explicit reopening',async()=>{
+   const existing=await createOrder(input(['T07-S1']),'before-pause');
+   await setEventSales(event.id,false);const paused=(await loadEvent(event.id))!;
+   assert.equal(paused.bookingPaused,true);assert.equal(canBook(paused),false);assert.equal(canSelectSeats(paused),false);
+   await assert.rejects(createOrder(input(['T08-S1']),'during-pause'));
+   await saveEvent({...paused,title:'Изменённая афиша',bookingPaused:false});assert.equal((await loadEvent(event.id))?.bookingPaused,true);
+   const checkout=await preparePayment(existing);succeed(checkout.payment.providerId!);assert.equal((await syncYookassaPayment(checkout)).status,'paid');
+   const next={...event,id:'next-evening',slug:'next-evening',date:'2099-10-18',bookingPaused:false};await saveEvent(next);
+   assert.equal((await loadEvent(next.id))?.bookingPaused,true);assert.equal((await seatsFor(next.id)).filter(s=>s.status==='available').length,20);
+   assert.equal((await seatsFor(event.id)).find(s=>s.id==='T07-S1')?.status,'sold');
+   process.env.CINEMA_ONLINE_SALES='false';await assert.rejects(setEventSales(next.id,true));process.env.CINEMA_ONLINE_SALES='true';
+   await setEventSales(next.id,true);assert.equal(canBook((await loadEvent(next.id))!),true);
+   await saveEvent({...next,date:'2020-10-18'});await assert.rejects(setEventSales(next.id,true));
+   await assert.rejects(setEventSales('unknown',false));await assert.rejects(setEventSales(event.id,'true'));
+   assert.equal((await getOrder(existing.id)).status,'paid');
   });
  }finally{globalThis.fetch=originalFetch;}
 });
