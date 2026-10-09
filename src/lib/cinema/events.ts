@@ -1,9 +1,10 @@
 import {movieEvents,isPast,type MovieEvent} from '@/data/cinema';
 import {seatIds,cinemaHallConfig} from '@/data/cinema-hall';
 import {transaction,cinemaDatabaseUrl} from './database';
+import {onlineSalesEnabled} from './payment-config';
 export async function loadEvents():Promise<MovieEvent[]> {
  if(process.env.NODE_ENV==='production'&&!cinemaDatabaseUrl())return movieEvents;
- return transaction(async db=>{const rows=await db.query('SELECT data FROM cinema_event_overrides');const map=new Map(movieEvents.map(e=>[e.id,e]));for(const r of rows){const e=JSON.parse(String(r.data));map.set(e.id,e);}return [...map.values()].sort((a,b)=>a.startsAt.localeCompare(b.startsAt));});
+ return transaction(async db=>{const rows=await db.query('SELECT data FROM cinema_event_overrides');const map=new Map(movieEvents.map(e=>[e.id,e]));for(const r of rows){const e=JSON.parse(String(r.data));map.set(e.id,e);}return [...map.values()].map(e=>onlineSalesEnabled()&&e.status==='active'?{...e,saleStatus:'open' as const,demo:false}:e).sort((a,b)=>a.startsAt.localeCompare(b.startsAt));});
 }
 export async function loadEvent(id:string){return (await loadEvents()).find(e=>e.id===id);}
 export async function loadEventSlug(slug:string){const events=await loadEvents();return events.find(e=>e.slug===slug)||(slug==='eat-pray-love'?events.find(e=>!isPast(e))||events[0]:undefined);}

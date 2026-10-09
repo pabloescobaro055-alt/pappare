@@ -10,7 +10,7 @@
 
 Production: DATABASE_URL, CINEMA_ADMIN_SECRET, CINEMA_DEMO=false, CINEMA_PUBLIC_ORIGIN=https://pappare.ru. Telegram использует TELEGRAM_BOT_TOKEN и TELEGRAM_CHAT_ID. Неудачные сообщения остаются в cinema_notifications; необходимо запускать защищённый POST /api/cinema/notifications/retry с Bearer CINEMA_ADMIN_SECRET по расписанию на сервере.
 
-ЮKassa ещё НЕ интегрирована: текущий платёжный шлюз общий. Перед открытием продаж нужен адаптер ЮKassa, серверная проверка платежей, фискальные чеки, проверка webhook/возвратов и реальный тест Telegram. Нельзя подставлять webhook ЮKassa в общий обработчик HMAC.
+Добавлена прямая интеграция ЮKassa: серверная проверка, чеки, отдельный webhook и фоновая сверка. Установка и проверка реального платежа описаны в YOOKASSA-RELEASE.md. Общий HMAC webhook не используется для ЮKassa. Автоматические возвраты пока не реализованы.
 
 Контакты по 2ГИС: https://2gis.ru/irkutsk/firm/70000001110409148 — pappare38@mail.ru, 664011, Иркутск, пер. Богданова, 4. Пользователь разрешил использовать адрес ресторана для корреспонденции. Email найден публично; владелец пока уточняет.
 

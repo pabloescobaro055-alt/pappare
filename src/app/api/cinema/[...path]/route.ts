@@ -8,11 +8,13 @@ import {NextRequest,NextResponse} from 'next/server';
 import {movieEvents,isPast} from '@/data/cinema';
 import {CinemaError,createOrder,getOrder,seatsFor,changeStatus,demoMode} from '@/lib/cinema/orders';
 import {preparePayment,verifySignature} from '@/lib/cinema/payments';
+import {syncYookassaPayment,yookassaWebhook,settleYookassaReceipt,reconcileYookassaPayments} from '@/lib/cinema/yookassa';
 import {flushCinemaNotifications} from '@/lib/cinema/notifications';
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
 type Context={params:Promise<{path:string[]}>};
 const json=(data:unknown,status=200)=>NextResponse.json(data,{status,headers:{'Cache-Control':'no-store','Referrer-Policy':'no-referrer'}});
+const checkedPayments=new Map<string,number>();
 function error(e:unknown) {if(e instanceof CinemaError)return json({message:e.message},e.status);console.error('Cinema API failed',e instanceof Error?e.message:'unknown');return json({message:'Не удалось связаться с сервером. Попробуйте ещё раз.'},500);}
 export async function GET(request:NextRequest,context:Context) {
   try {
@@ -21,18 +23,19 @@ export async function GET(request:NextRequest,context:Context) {
     if(p[0]==='media'&&p.length===2){const rows=await transaction(db=>db.query('SELECT data FROM cinema_media WHERE id=$1',[p[1]]));if(!rows.length)return json({message:'Фото не найдено'},404);return new NextResponse(Buffer.from(String(rows[0].data),'base64'),{headers:{'Content-Type':'image/webp','Cache-Control':'public,max-age=31536000,immutable','X-Content-Type-Options':'nosniff'}});}
     if(p[0]==='events'&&p.length===1) return json({events:await Promise.all((await loadEvents()).filter(e=>!isPast(e)).map(async e=>({...e,available:(await seatsFor(e.id)).filter(s=>s.status==='available').length})))});
     if(p[0]==='events'&&p[2]==='seats') return json({seats:await seatsFor(p[1]),event:await loadEvent(p[1])});
-    if(p[0]==='orders'&&p.length===2) {const order=await getOrder(p[1]);return json({order,event:await loadEvent(order.eventId)});}
+    if(p[0]==='orders'&&p.length===2) {let order=await getOrder(p[1]);if(order.payment.provider==='yookassa'&&Date.now()-(checkedPayments.get(order.id)||0)>10000){checkedPayments.set(order.id,Date.now());if(checkedPayments.size>500)checkedPayments.delete(checkedPayments.keys().next().value!);try{order=await syncYookassaPayment(order);await flushCinemaNotifications();}catch(e){if(!(e instanceof CinemaError)||![502,503].includes(e.status))throw e;}}return json({order,event:await loadEvent(order.eventId)});}
     return json({message:'Не найдено'},404);
   }catch(e){return error(e);}
 }
 export async function POST(request:NextRequest,context:Context) {
   try {
     const p=(await context.params).path;
+    if(p[0]==='yookassa'&&p[1]==='webhook'&&p.length===2){const raw=await request.text();if(raw.length>50000)throw new CinemaError('Слишком большой запрос');await yookassaWebhook(JSON.parse(raw));await flushCinemaNotifications();return json({ok:true});}
     if(p[0]==='webhook') {
       const raw=await request.text();
       if(!verifySignature(raw,request.headers.get('x-payment-signature'),request.headers.get('x-payment-timestamp'))) return json({message:'Unauthorized'},401);
       const body=JSON.parse(raw), order=await getOrder(body.orderId);
-      if(order.payment.mode!=='provider'||order.payment.providerId!==body.paymentId||body.currency!=='RUB'||body.status!=='paid'||!Number.isInteger(body.amount)) throw new CinemaError('Неверные данные платежа');
+      if(order.payment.provider==='yookassa'||order.payment.mode!=='provider'||order.payment.providerId!==body.paymentId||body.currency!=='RUB'||body.status!=='paid'||!Number.isInteger(body.amount)) throw new CinemaError('Неверные данные платежа');
       await changeStatus(order.id,'paid',body.amount);await flushCinemaNotifications();return json({ok:true});
     }
     const origin=request.headers.get('origin');
@@ -51,10 +54,12 @@ export async function POST(request:NextRequest,context:Context) {
       if(p[1]==='reserve'){const order=await reserveByAdmin(body);await flushCinemaNotifications();return json({order});}
       if(p[1]==='cancel'){const order=await cancelAdminReservation(body.id);await flushCinemaNotifications();return json({order});}
       if(p[1]==='paid'){const order=await markAdminPaid(body.id,body.note);await flushCinemaNotifications();return json({order});}
+      if(p[1]==='settlement'){return json({receipt:await settleYookassaReceipt(body.id)});}
       return json({message:'Не найдено'},404);
     }
     if(p[0]==='notifications'&&p[1]==='retry') {
-      if(!process.env.CINEMA_ADMIN_SECRET||request.headers.get('authorization')!==`Bearer ${process.env.CINEMA_ADMIN_SECRET}`)return json({message:'Unauthorized'},401);
+      admin(request);
+      await reconcileYookassaPayments();
       await flushCinemaNotifications();return json({ok:true});
     }
     if(p[0]==='orders'&&p.length===1) {
@@ -71,7 +76,7 @@ export async function POST(request:NextRequest,context:Context) {
       }
       if(p[2]==='check'&&order.payment.mode==='manual') {const updated=await changeStatus(order.id,'payment_check_required');await flushCinemaNotifications();return json({order:updated});}
       if(p[2]==='demo-pay'&&demoMode()&&order.payment.mode==='demo') return json({order:await changeStatus(order.id,'paid')});
-      if(p[2]==='confirm'&&process.env.CINEMA_ADMIN_SECRET&&request.headers.get('authorization')===`Bearer ${process.env.CINEMA_ADMIN_SECRET}`) {const updated=await changeStatus(order.id,'paid');await flushCinemaNotifications();return json({order:updated});}
+      if(p[2]==='confirm'&&order.payment.provider!=='yookassa'&&process.env.CINEMA_ADMIN_SECRET&&request.headers.get('authorization')===`Bearer ${process.env.CINEMA_ADMIN_SECRET}`) {const updated=await changeStatus(order.id,'paid');await flushCinemaNotifications();return json({order:updated});}
     }
     return json({message:'Не найдено'},404);
   }catch(e){if(e instanceof SyntaxError)return json({message:'Некорректный JSON'},400);return error(e);}

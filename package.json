@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test:cinema": "tsx --test tests/cinema.test.ts"
+    "test:cinema": "tsx --test tests/cinema.test.ts tests/yookassa.test.ts"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",

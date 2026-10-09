@@ -5,10 +5,11 @@ import { randomBytes, createHash } from 'node:crypto';
 import { canBook, isPast, eventById, money, dateLabel } from '@/data/cinema';
 import { seatIds, seatLabel, type Seat } from '@/data/cinema-hall';
 import { transaction, cinemaDatabaseUrl, type Connection } from './database';
+import {onlineSalesEnabled} from './payment-config';
 
 export class CinemaError extends Error { constructor(message:string, public status=400){super(message);} }
-export type PaymentData = { mode:'demo'|'manual'|'provider'; url?:string; qrUrl?:string; providerId?:string; source?:'admin'; note?:string };
-export type CinemaOrder = {id:string;eventId:string;name:string;phone:string;telegram:string;total:number;status:string;createdAt:number;expiresAt:number;seatIds:string[];seatPrices:Record<string,number>;payment:PaymentData};
+export type PaymentData = { mode:'demo'|'manual'|'provider'; url?:string; qrUrl?:string; providerId?:string; provider?:'yookassa'; receiptStatus?:string; source?:'admin'; note?:string };
+export type CinemaOrder = {id:string;eventId:string;name:string;phone:string;telegram:string;email?:string;total:number;status:string;createdAt:number;expiresAt:number;seatIds:string[];seatPrices:Record<string,number>;payment:PaymentData};
 export const demoMode = ()=>process.env.CINEMA_DEMO !== 'false';
 export async function expire(db:Connection, now=Date.now()) {
   await db.query("UPDATE cinema_seats SET status='available',hold_order_id=NULL,hold_until=NULL WHERE status='held' AND hold_until<=$1",[now]);
@@ -19,10 +20,11 @@ async function read(db:Connection,id:string):Promise<CinemaOrder> {
   if (!r) throw new CinemaError('Заказ не найден',404);
   const seats = await db.query('SELECT seat_id FROM cinema_order_seats WHERE order_id=$1 ORDER BY seat_id',[id]);
   const prices=await db.query('SELECT seat_id,price FROM cinema_order_prices WHERE order_id=$1',[id]);
+  const [contact]=await db.query('SELECT email FROM cinema_order_contacts WHERE order_id=$1',[id]);
   const seatPrices=Object.fromEntries(prices.map(p=>[String(p.seat_id),Number(p.price)]));
   // Orders created before table pricing had one uniform price; keep their original amount.
   for(const seat of seats)seatPrices[String(seat.seat_id)] ??= Number(r.total_amount)/seats.length;
-  return {id:String(r.id),eventId:String(r.event_id),name:String(r.customer_name),phone:String(r.phone),telegram:String(r.telegram),total:Number(r.total_amount),status:String(r.status),createdAt:Number(r.created_at),expiresAt:Number(r.expires_at),seatIds:seats.map(s=>String(s.seat_id)),seatPrices,payment:JSON.parse(String(r.payment_data))};
+  return {id:String(r.id),eventId:String(r.event_id),name:String(r.customer_name),phone:String(r.phone),telegram:String(r.telegram),email:contact?String(contact.email):undefined,total:Number(r.total_amount),status:String(r.status),createdAt:Number(r.created_at),expiresAt:Number(r.expires_at),seatIds:seats.map(s=>String(s.seat_id)),seatPrices,payment:JSON.parse(String(r.payment_data))};
 }
 async function quote(db:Connection,event:MovieEvent,selected:string[],expectedTotal:unknown){
   const [override]=await db.query('SELECT data FROM cinema_event_overrides WHERE id=$1',[event.id]);
@@ -37,7 +39,7 @@ async function saveSeatPrices(db:Connection,id:string,event:MovieEvent,selected:
 export function notificationText(o:CinemaOrder,event?:MovieEvent) {
   const e = event || eventById(o.eventId);
   if(!e)return `КИНОУЖИН • Заказ: ${o.id} · ${o.status}`;
-  return ['КИНОУЖИН • PAPPARE',`Фильм: ${e.title}`,`${dateLabel(e)} · ${e.time}`,`Гость: ${o.name}`,`Телефон: ${o.phone}`,o.telegram?`Telegram: ${o.telegram}`:'',...o.seatIds.map(seatLabel),`Количество: ${o.seatIds.length}`,`Сумма: ${money(o.total)}`,`Заказ: ${o.id}`,o.payment.source==='admin'?`Подтвердил администратор: ${o.payment.note}`:'',`Оплата: ${{pending:'ожидается',paid:'оплачено',payment_check_required:'требует проверки',expired:'резерв истёк',reserved:'не получена — телефонная бронь подтверждена',cancelled:'телефонная бронь отменена'}[o.status] || o.status}`].filter(Boolean).join('\n');
+  return ['КИНОУЖИН • PAPPARE',`Фильм: ${e.title}`,`${dateLabel(e)} · ${e.time}`,`Гость: ${o.name}`,`Телефон: ${o.phone}`,o.telegram?`Telegram: ${o.telegram}`:'',...o.seatIds.map(seatLabel),`Количество: ${o.seatIds.length}`,`Сумма: ${money(o.total)}`,`Заказ: ${o.id}`,o.payment.source==='admin'?`Подтвердил администратор: ${o.payment.note}`:'',`Оплата: ${{pending:'ожидается',paid:'оплачено',payment_check_required:'требует проверки',paid_review:'ОПЛАТА ПОЛУЧЕНА ПОСЛЕ ИСТЕЧЕНИЯ РЕЗЕРВА — места не закреплены; свяжитесь с гостем для возврата или новой брони',expired:'резерв истёк',reserved:'не получена — телефонная бронь подтверждена',cancelled:o.payment.provider==='yookassa'?'платёж отменён; места освобождены':'телефонная бронь отменена'}[o.status] || o.status}`].filter(Boolean).join('\n');
 }
 async function enqueue(db:Connection,o:CinemaOrder) {
   const [override]=await db.query('SELECT data FROM cinema_event_overrides WHERE id=$1',[o.eventId]);
@@ -58,6 +60,8 @@ export async function createOrder(body:Record<string,unknown>, ip:string) {
   const name = typeof body.name==='string'?body.name.trim():'';
   const phone = typeof body.phone==='string'?body.phone.trim():'';
   const telegram = typeof body.telegram==='string'?body.telegram.trim():'';
+  const email=typeof body.email==='string'?body.email.trim().toLowerCase():'';
+  if(process.env.PAYMENT_PROVIDER==='yookassa'&&!demoMode()&&(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||email.length>254||body.terms!==true))throw new CinemaError('Укажите email для чека и примите условия бронирования');
   if(name.length<2||name.length>80||!/^\+?[\d\s()\-]{10,24}$/.test(phone)||phone.replace(/\D/g,'').length<10||telegram.length>80) throw new CinemaError('Укажите имя и корректный телефон');
   if(typeof body.requestKey!=='string'||!/^[a-zA-Z0-9-]{20,80}$/.test(body.requestKey)) throw new CinemaError('Обновите страницу и повторите попытку');
   const key=body.requestKey;
@@ -66,11 +70,11 @@ export async function createOrder(body:Record<string,unknown>, ip:string) {
     const [existing]=await db.query('SELECT id FROM cinema_orders WHERE request_key=$1',[key]);
     if(existing) {
       const old=await read(db,String(existing.id));
-      if(old.eventId!==event.id || old.phone!==phone || old.name!==name || [...old.seatIds].sort().join()!==[...selected].sort().join()) throw new CinemaError('Ключ запроса уже использован',409);
+      if(old.eventId!==event.id || old.phone!==phone || old.name!==name || (old.email||'')!==email || [...old.seatIds].sort().join()!==[...selected].sort().join()) throw new CinemaError('Ключ запроса уже использован',409);
       return old;
     }
     const priced=await quote(db,event,selected,body.expectedTotal);
-    if(!canBook(priced.event))throw new CinemaError('Продажи на этот киноужин закрыты');
+    if(!canBook(onlineSalesEnabled()?{...priced.event,saleStatus:'open',demo:false}:priced.event))throw new CinemaError('Продажи на этот киноужин закрыты');
     const now=Date.now(), rateId=createHash('sha256').update(ip).digest('hex');
     await db.query('DELETE FROM cinema_rate_limits WHERE reset_at<=$1',[now]);
     const [rate]=await db.query('SELECT count FROM cinema_rate_limits WHERE id=$1',[rateId]);
@@ -83,6 +87,7 @@ export async function createOrder(body:Record<string,unknown>, ip:string) {
     const expires=now+hold*60000;
     await db.query('INSERT INTO cinema_orders(id,event_id,customer_name,phone,telegram,total_amount,status,created_at,expires_at,request_key) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)',[id,event.id,name,phone,telegram,priced.total,'pending',now,expires,key]);
     await saveSeatPrices(db,id,priced.event,selected);
+    if(email)await db.query('INSERT INTO cinema_order_contacts(order_id,email) VALUES($1,$2)',[id,email]);
     for(const seat of selected) {
       await db.query("UPDATE cinema_seats SET status='held',hold_order_id=$1,hold_until=$2 WHERE event_id=$3 AND id=$4",[id,expires,event.id,seat]);
       await db.query('INSERT INTO cinema_order_seats(order_id,seat_id) VALUES($1,$2)',[id,seat]);
@@ -108,9 +113,33 @@ export async function changeStatus(id:string,status:'paid'|'payment_check_requir
   });
 }
 export async function pendingNotifications() {return transaction(db=>db.query('SELECT * FROM cinema_notifications WHERE delivered=0 LIMIT 20'));}
+// The caller must verify the payment against YooKassa's authenticated API first.
+export async function applyYookassaPayment(id:string,payment:PaymentData,status:'succeeded'|'canceled'|'pending') {
+ return transaction(async db=>{
+  await expire(db);const order=await read(db,id);
+  if(order.payment.providerId&&order.payment.providerId!==payment.providerId)throw new CinemaError('Платёж не относится к заказу',409);
+  await db.query('UPDATE cinema_orders SET payment_data=$1 WHERE id=$2',[JSON.stringify({...order.payment,...payment}),id]);
+  if(!['paid','paid_review','cancelled'].includes(order.status)){
+   if(status==='succeeded'){
+    const held=await db.query("SELECT id FROM cinema_seats WHERE hold_order_id=$1 AND status='held'",[id]);
+    const complete=held.length===order.seatIds.length&&['pending','payment_check_required'].includes(order.status);
+    await db.query('UPDATE cinema_orders SET status=$1 WHERE id=$2',[complete?'paid':'paid_review',id]);
+    if(complete)await db.query("UPDATE cinema_seats SET status='sold',hold_until=NULL WHERE hold_order_id=$1",[id]);
+    else await db.query("UPDATE cinema_seats SET status='available',hold_order_id=NULL,hold_until=NULL WHERE hold_order_id=$1 AND status='held'",[id]);
+   }else if(status==='canceled'){
+    await db.query("UPDATE cinema_orders SET status='cancelled' WHERE id=$1",[id]);
+    await db.query("UPDATE cinema_seats SET status='available',hold_order_id=NULL,hold_until=NULL WHERE hold_order_id=$1 AND status='held'",[id]);
+   }
+  }
+  const updated=await read(db,id);
+  if(updated.status!==order.status)await enqueue(db,updated);
+  if(payment.receiptStatus==='canceled')await db.query('INSERT INTO cinema_notifications(id,order_id,text) VALUES($1,$2,$3) ON CONFLICT(id) DO NOTHING',[id+':receipt-failed',id,'Не удалось зарегистрировать чек ЮKassa. Проверьте кабинет и обратитесь в поддержку. Заказ: '+id]);
+  return updated;
+ });
+}
 export async function deliveredNotification(id:string) {return transaction(db=>db.query('UPDATE cinema_notifications SET delivered=1 WHERE id=$1',[id]));}
 
-export async function adminOrders(eventId:string) {return transaction(async db=>{await expire(db);const rows=await db.query("SELECT id FROM cinema_orders WHERE event_id=$1 AND status IN ('reserved','paid','pending','payment_check_required') ORDER BY created_at DESC",[eventId]);return Promise.all(rows.map(r=>read(db,String(r.id))));});}
+export async function adminOrders(eventId:string) {return transaction(async db=>{await expire(db);const rows=await db.query("SELECT id FROM cinema_orders WHERE event_id=$1 AND status IN ('reserved','paid','paid_review','pending','payment_check_required') ORDER BY created_at DESC",[eventId]);return Promise.all(rows.map(r=>read(db,String(r.id))));});}
 export async function reserveByAdmin(body:Record<string,unknown>) {
  const event=typeof body.eventId==='string'?await loadEvent(body.eventId):undefined;
  if(!event||isPast(event))throw new CinemaError('Киноужин недоступен');

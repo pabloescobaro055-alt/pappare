@@ -1,5 +1,6 @@
 import {createHmac, timingSafeEqual} from 'node:crypto';
 import {CinemaError, demoMode, savePayment, type CinemaOrder, type PaymentData} from './orders';
+import {createYookassaPayment} from './yookassa';
 
 function httpsUrl(value:unknown):string|undefined {
   if(typeof value!=='string'||!value) return undefined;
@@ -9,6 +10,7 @@ export async function preparePayment(order:CinemaOrder):Promise<CinemaOrder> {
   if(order.payment.mode) return order;
   let payment:PaymentData;
   if(demoMode()) payment={mode:'demo'};
+  else if(process.env.PAYMENT_PROVIDER==='yookassa') return createYookassaPayment(order);
   else if(process.env.PAYMENT_PROVIDER==='manual') {
     const qrUrl=httpsUrl(process.env.SBP_QR_URL),url=httpsUrl(process.env.SBP_PAYMENT_URL);
     if(!qrUrl) throw new CinemaError('Оплата временно недоступна. Резерв сохранён.',503);
@@ -16,7 +18,7 @@ export async function preparePayment(order:CinemaOrder):Promise<CinemaOrder> {
   } else if(process.env.PAYMENT_PROVIDER==='gateway') {
     const endpoint=httpsUrl(process.env.PAYMENT_GATEWAY_URL);
     if(!endpoint||!process.env.PAYMENT_SECRET) throw new CinemaError('Платёжный провайдер не настроен',503);
-    // Adapter contract documented in CINEMA.md. Gateway translates to the bank API.
+    // Legacy gateway contract. YooKassa uses its dedicated adapter above.
     const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${process.env.PAYMENT_SECRET}`,'Idempotency-Key':order.id},body:JSON.stringify({orderId:order.id,amount:order.total,currency:'RUB',expiresAt:order.expiresAt}),signal:AbortSignal.timeout(12000)});
     if(!response.ok) throw new CinemaError('Провайдер недоступен. Попробуйте ещё раз.',502);
     const data=await response.json();
