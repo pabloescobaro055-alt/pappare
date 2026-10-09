@@ -30,13 +30,13 @@ const menuPhotos: Record<string, MenuDishPhoto[]> = {
   ],
   "breakfast|breakfast-panini|Драники": [
     {
-      "src": "/assets/menu-20261008/dish-005.jpg",
+      "src": "/assets/menu-corrections-20261009/potato-pancakes.webp",
       "label": "Драники"
     }
   ],
   "breakfast|breakfast-panini|Вафли из цукини": [
     {
-      "src": "/assets/menu-20261008/dish-006.jpg",
+      "src": "/assets/menu-corrections-20261009/zucchini-waffles.webp",
       "label": "Вафли из цукини"
     }
   ],
@@ -60,19 +60,19 @@ const menuPhotos: Record<string, MenuDishPhoto[]> = {
   ],
   "breakfast|breakfast-eggs|Скрембл": [
     {
-      "src": "/assets/menu-20261008/dish-010.jpg",
+      "src": "/assets/menu-corrections-20261009/scramble.webp",
       "label": "Скрембл"
     }
   ],
   "breakfast|breakfast-eggs|Глазунья": [
     {
-      "src": "/assets/menu-20261008/dish-011.jpg",
+      "src": "/assets/menu-corrections-20261009/sunny-side-up.webp",
       "label": "Глазунья"
     }
   ],
   "breakfast|breakfast-eggs|Омлет": [
     {
-      "src": "/assets/menu-20261008/dish-012.jpg",
+      "src": "/assets/menu-corrections-20261009/omelette.webp",
       "label": "Омлет"
     }
   ],
@@ -186,7 +186,7 @@ const menuPhotos: Record<string, MenuDishPhoto[]> = {
   ],
   "main|starters|Тар-тар из лосося": [
     {
-      "src": "/assets/menu-20261008/dish-031.jpg",
+      "src": "/assets/menu-corrections-20261009/salmon-tartare.webp",
       "label": "Тар-тар из лосося"
     }
   ],
@@ -204,7 +204,7 @@ const menuPhotos: Record<string, MenuDishPhoto[]> = {
   ],
   "main|salads|Салат с сёмгой и манго": [
     {
-      "src": "/assets/menu-20261008/dish-034.jpg",
+      "src": "/assets/menu-corrections-20261009/salmon-mango-salad.webp",
       "label": "Салат с сёмгой и манго"
     }
   ],
