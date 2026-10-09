@@ -1,5 +1,7 @@
-// Explicit position-to-photo assignments. Source: PAPPARE-YANDEX-EDA, 8 October 2026.
-export type MenuDishPhoto = { src: string; label: string; caption?: string };
+import drinkPhotos from './drink-photos.json';
+// Explicit position-to-photo assignments. Sources: PAPPARE-YANDEX-EDA and PAPPARE-YANDEX-DRINKS.
+export type MenuDishPhoto = { src: string; label: string; caption?: string; aspect?: 'square' };
+const drinkPhotoMap=drinkPhotos as Record<string,MenuDishPhoto[]>;
 
 const menuPhotos: Record<string, MenuDishPhoto[]> = {
   "breakfast|breakfast-panini|Панини с курицей и грибами": [
@@ -534,5 +536,6 @@ const menuPhotos: Record<string, MenuDishPhoto[]> = {
 };
 
 export function getMenuPhotos(groupId: string, sectionId: string, itemName: string): MenuDishPhoto[] {
-  return menuPhotos[[groupId, sectionId, itemName].join("|")] || [];
+  const key=[groupId, sectionId, itemName].join("|");
+  return drinkPhotoMap[key] || menuPhotos[key] || [];
 }

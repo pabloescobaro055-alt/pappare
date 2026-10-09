@@ -62,9 +62,9 @@ export function MenuItemCard({ item, imageSrc: fallbackImage, photos = [] }: Men
         {imageSrc && (
           <button
             type="button"
-            aria-label={`Открыть фото блюда ${photoLabel}`}
+            aria-label={`Открыть фото ${photoLabel}`}
             onClick={() => setIsOpen(true)}
-            className="menu-item-image group relative h-44 w-full cursor-zoom-in overflow-hidden rounded-xl bg-linen sm:col-start-1 sm:row-span-3 sm:row-start-1 sm:h-[112px] sm:w-[112px] sm:shrink-0"
+            className={cn("menu-item-image group relative w-full cursor-zoom-in overflow-hidden rounded-xl bg-linen sm:col-start-1 sm:row-span-3 sm:row-start-1 sm:h-[112px] sm:w-[112px] sm:shrink-0",photo?.aspect==='square'?'aspect-square':'h-44')}
           >
             <Image
               src={imageSrc}
@@ -73,7 +73,7 @@ export function MenuItemCard({ item, imageSrc: fallbackImage, photos = [] }: Men
               sizes="(max-width: 640px) 100vw, 112px"
               loading="lazy"
               decoding="async"
-              className="object-cover transition duration-300 group-hover:scale-[1.04] group-hover:brightness-105"
+              className={cn("transition duration-300 group-hover:scale-[1.04] group-hover:brightness-105",photo?.aspect==='square'?'object-contain':'object-cover')}
             />
             <span className="absolute inset-0 flex items-center justify-center bg-ink/0 opacity-0 transition duration-[250ms] group-hover:bg-ink/28 group-hover:opacity-100">
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-cream/88 text-ink shadow-soft backdrop-blur">

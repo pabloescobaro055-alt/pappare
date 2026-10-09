@@ -1,0 +1,462 @@
+{
+  "breakfast|breakfast-drinks|Доппио": [
+    {
+      "src": "/assets/drinks-20261009/drink-017.webp",
+      "label": "Доппио",
+      "aspect": "square"
+    }
+  ],
+  "breakfast|breakfast-drinks|Американо": [
+    {
+      "src": "/assets/drinks-20261009/drink-004.webp",
+      "label": "Американо",
+      "aspect": "square"
+    }
+  ],
+  "breakfast|breakfast-drinks|Флэт уайт": [
+    {
+      "src": "/assets/drinks-20261009/drink-046.webp",
+      "label": "Флэт уайт",
+      "aspect": "square"
+    }
+  ],
+  "breakfast|breakfast-drinks|Капучино": [
+    {
+      "src": "/assets/drinks-20261009/drink-022.webp",
+      "label": "Капучино",
+      "aspect": "square"
+    }
+  ],
+  "breakfast|breakfast-drinks|Латте": [
+    {
+      "src": "/assets/drinks-20261009/drink-028.webp",
+      "label": "Латте",
+      "aspect": "square"
+    }
+  ],
+  "breakfast|breakfast-drinks|Раф": [
+    {
+      "src": "/assets/drinks-20261009/drink-035.webp",
+      "label": "Раф",
+      "aspect": "square"
+    }
+  ],
+  "breakfast|breakfast-drinks|Апельсиновый сок": [
+    {
+      "src": "/assets/drinks-20261009/drink-005.webp",
+      "label": "Апельсиновый сок",
+      "aspect": "square"
+    }
+  ],
+  "breakfast|breakfast-drinks|Вишнёвый сок": [
+    {
+      "src": "/assets/drinks-20261009/drink-012.webp",
+      "label": "Вишнёвый сок",
+      "aspect": "square"
+    }
+  ],
+  "bar|coffee|Эспрессо": [
+    {
+      "src": "/assets/drinks-20261009/drink-052.webp",
+      "label": "Эспрессо",
+      "aspect": "square"
+    }
+  ],
+  "bar|coffee|Доппио": [
+    {
+      "src": "/assets/drinks-20261009/drink-017.webp",
+      "label": "Доппио",
+      "aspect": "square"
+    }
+  ],
+  "bar|coffee|Американо": [
+    {
+      "src": "/assets/drinks-20261009/drink-004.webp",
+      "label": "Американо",
+      "aspect": "square"
+    }
+  ],
+  "bar|coffee|Флэт уайт": [
+    {
+      "src": "/assets/drinks-20261009/drink-046.webp",
+      "label": "Флэт уайт",
+      "aspect": "square"
+    }
+  ],
+  "bar|coffee|Капучино": [
+    {
+      "src": "/assets/drinks-20261009/drink-022.webp",
+      "label": "Капучино",
+      "aspect": "square"
+    }
+  ],
+  "bar|coffee|Латте": [
+    {
+      "src": "/assets/drinks-20261009/drink-028.webp",
+      "label": "Латте",
+      "aspect": "square"
+    }
+  ],
+  "bar|coffee|Гляссе": [
+    {
+      "src": "/assets/drinks-20261009/drink-014.webp",
+      "label": "Гляссе",
+      "aspect": "square"
+    }
+  ],
+  "bar|coffee|Раф": [
+    {
+      "src": "/assets/drinks-20261009/drink-035.webp",
+      "label": "Раф",
+      "aspect": "square"
+    }
+  ],
+  "bar|coffee|Какао": [
+    {
+      "src": "/assets/drinks-20261009/drink-021.webp",
+      "label": "Какао",
+      "aspect": "square"
+    }
+  ],
+  "bar|coffee|Мокачино": [
+    {
+      "src": "/assets/drinks-20261009/drink-030.webp",
+      "label": "Мокачино",
+      "aspect": "square"
+    }
+  ],
+  "bar|coffee|Смородиновый американо": [
+    {
+      "src": "/assets/drinks-20261009/drink-040.webp",
+      "label": "Смородиновый американо",
+      "aspect": "square"
+    }
+  ],
+  "bar|coffee|Раф «Пряный персик»": [
+    {
+      "src": "/assets/drinks-20261009/drink-034.webp",
+      "label": "Раф Пряный персик",
+      "aspect": "square"
+    }
+  ],
+  "bar|coffee|Хвойный латте": [
+    {
+      "src": "/assets/drinks-20261009/drink-047.webp",
+      "label": "Хвойный латте",
+      "aspect": "square"
+    }
+  ],
+  "bar|coffee|Кофе-тоник": [
+    {
+      "src": "/assets/drinks-20261009/drink-027.webp",
+      "label": "Кофе-тоник",
+      "aspect": "square"
+    }
+  ],
+  "bar|coffee|Бамбл": [
+    {
+      "src": "/assets/drinks-20261009/drink-008.webp",
+      "label": "Бамбл",
+      "aspect": "square"
+    }
+  ],
+  "bar|coffee|Айс капучино": [
+    {
+      "src": "/assets/drinks-20261009/drink-001.webp",
+      "label": "Айс капучино",
+      "aspect": "square"
+    }
+  ],
+  "bar|coffee|Айс латте": [
+    {
+      "src": "/assets/drinks-20261009/drink-002.webp",
+      "label": "Айс латте",
+      "aspect": "square"
+    }
+  ],
+  "bar|lemonades|Ежевичный мохито": [
+    {
+      "src": "/assets/drinks-20261009/drink-018.webp",
+      "label": "Ежевичный мохито",
+      "aspect": "square"
+    }
+  ],
+  "bar|lemonades|Клауд Берри": [
+    {
+      "src": "/assets/drinks-20261009/drink-025.webp",
+      "label": "Клауд Берри",
+      "aspect": "square"
+    }
+  ],
+  "bar|lemonades|Сан-Биттер": [
+    {
+      "src": "/assets/drinks-20261009/drink-036.webp",
+      "label": "Сан-Биттер",
+      "aspect": "square"
+    }
+  ],
+  "bar|lemonades|Цитрусовый бриз": [
+    {
+      "src": "/assets/drinks-20261009/drink-049.webp",
+      "label": "Цитрусовый бриз",
+      "aspect": "square"
+    }
+  ],
+  "bar|lemonades|Киви-фейхоа": [
+    {
+      "src": "/assets/drinks-20261009/drink-024.webp",
+      "label": "Киви-фейхоа",
+      "aspect": "square"
+    }
+  ],
+  "bar|lemonades|Манго-персик": [
+    {
+      "src": "/assets/drinks-20261009/drink-029.webp",
+      "label": "Манго-персик",
+      "aspect": "square"
+    }
+  ],
+  "bar|lemonades|Тропический": [
+    {
+      "src": "/assets/drinks-20261009/drink-044.webp",
+      "label": "Тропический",
+      "aspect": "square"
+    }
+  ],
+  "bar|lemonades|Ягодный микс": [
+    {
+      "src": "/assets/drinks-20261009/drink-053.webp",
+      "label": "Ягодный микс",
+      "aspect": "square"
+    }
+  ],
+  "bar|lemonades|Пьяная вишня": [
+    {
+      "src": "/assets/drinks-20261009/drink-033.webp",
+      "label": "Пьяная вишня",
+      "aspect": "square"
+    }
+  ],
+  "bar|milkshakes|Ванильный": [
+    {
+      "src": "/assets/drinks-20261009/drink-010.webp",
+      "label": "Ванильный",
+      "aspect": "square"
+    }
+  ],
+  "bar|milkshakes|Персик-банан": [
+    {
+      "src": "/assets/drinks-20261009/drink-031.webp",
+      "label": "Персик-банан",
+      "aspect": "square"
+    }
+  ],
+  "bar|milkshakes|Шоколадный": [
+    {
+      "src": "/assets/drinks-20261009/drink-051.webp",
+      "label": "Шоколадный",
+      "aspect": "square"
+    }
+  ],
+  "bar|tea|Ассам / Английский завтрак": [
+    {
+      "src": "/assets/drinks-20261009/drink-007.webp",
+      "label": "Ассам — Английский завтрак",
+      "aspect": "square"
+    }
+  ],
+  "bar|tea|Сенча": [
+    {
+      "src": "/assets/drinks-20261009/drink-038.webp",
+      "label": "Сенча",
+      "aspect": "square"
+    }
+  ],
+  "bar|tea|Тизаны": [
+    {
+      "src": "/assets/drinks-20261009/drink-042.webp",
+      "label": "Тизаны",
+      "aspect": "square"
+    }
+  ],
+  "bar|tea|Амальфийский закат": [
+    {
+      "src": "/assets/drinks-20261009/drink-003.webp",
+      "label": "Амальфийский закат",
+      "aspect": "square"
+    }
+  ],
+  "bar|tea|Сицилийский полдень": [
+    {
+      "src": "/assets/drinks-20261009/drink-039.webp",
+      "label": "Сицилийский полдень",
+      "aspect": "square"
+    }
+  ],
+  "bar|tea|Вечер в Чинкве-Терре": [
+    {
+      "src": "/assets/drinks-20261009/drink-011.webp",
+      "label": "Вечер в Чинкве-Терре",
+      "aspect": "square"
+    }
+  ],
+  "bar|tea|Хвоя-цитрус": [
+    {
+      "src": "/assets/drinks-20261009/drink-048.webp",
+      "label": "Хвоя-цитрус",
+      "aspect": "square"
+    }
+  ],
+  "bar|tea|Кедр-смородина": [
+    {
+      "src": "/assets/drinks-20261009/drink-023.webp",
+      "label": "Кедр-смородина",
+      "aspect": "square"
+    }
+  ],
+  "bar|beer|Тропический микс": [
+    {
+      "src": "/assets/drinks-20261009/drink-043.webp",
+      "label": "Тропический микс",
+      "aspect": "square"
+    }
+  ],
+  "bar|beer|Ежевичный нуар": [
+    {
+      "src": "/assets/drinks-20261009/drink-019.webp",
+      "label": "Ежевичный нуар",
+      "aspect": "square"
+    }
+  ],
+  "bar|beer|Пшеничное": [
+    {
+      "src": "/assets/drinks-20261009/drink-032.webp",
+      "label": "Пшеничное",
+      "aspect": "square"
+    }
+  ],
+  "bar|beer|Светлое": [
+    {
+      "src": "/assets/drinks-20261009/drink-037.webp",
+      "label": "Светлое",
+      "aspect": "square"
+    }
+  ],
+  "bar|beer|Тёмное": [
+    {
+      "src": "/assets/drinks-20261009/drink-041.webp",
+      "label": "Тёмное",
+      "aspect": "square"
+    }
+  ],
+  "bar|beer|Гиннес Драфт": [
+    {
+      "src": "/assets/drinks-20261009/drink-013.webp",
+      "label": "Гиннес Драфт",
+      "aspect": "square"
+    }
+  ],
+  "bar|beer|Корона Экстра": [
+    {
+      "src": "/assets/drinks-20261009/drink-026.webp",
+      "label": "Корона Экстра",
+      "aspect": "square"
+    }
+  ],
+  "bar|beer|Бирра Моретти": [
+    {
+      "src": "/assets/drinks-20261009/drink-009.webp",
+      "label": "Бирра Моретти",
+      "aspect": "square"
+    }
+  ],
+  "bar|beer|Артис Розе": [
+    {
+      "src": "/assets/drinks-20261009/drink-006.webp",
+      "label": "Артис Розе",
+      "aspect": "square"
+    }
+  ],
+  "bar|beer|Дальняя дача № 3": [
+    {
+      "src": "/assets/drinks-20261009/drink-016.webp",
+      "label": "Дальняя дача № 3",
+      "aspect": "square"
+    }
+  ],
+  "bar|beer|Дальняя дача № 2": [
+    {
+      "src": "/assets/drinks-20261009/drink-015.webp",
+      "label": "Дальняя дача № 2",
+      "aspect": "square"
+    }
+  ],
+  "evening|evening-drinks|Фейпи": [
+    {
+      "src": "/assets/drinks-20261009/drink-045.webp",
+      "label": "Фейпи",
+      "aspect": "square"
+    }
+  ],
+  "evening|evening-drinks|Ежевичный нуар": [
+    {
+      "src": "/assets/drinks-20261009/drink-019.webp",
+      "label": "Ежевичный нуар",
+      "aspect": "square"
+    }
+  ],
+  "evening|evening-drinks|Пшеничное": [
+    {
+      "src": "/assets/drinks-20261009/drink-032.webp",
+      "label": "Пшеничное",
+      "aspect": "square"
+    }
+  ],
+  "evening|evening-drinks|Светлое": [
+    {
+      "src": "/assets/drinks-20261009/drink-037.webp",
+      "label": "Светлое",
+      "aspect": "square"
+    }
+  ],
+  "evening|evening-drinks|Тёмное": [
+    {
+      "src": "/assets/drinks-20261009/drink-041.webp",
+      "label": "Тёмное",
+      "aspect": "square"
+    }
+  ],
+  "evening|evening-drinks|Гиннес Драфт": [
+    {
+      "src": "/assets/drinks-20261009/drink-013.webp",
+      "label": "Гиннес Драфт",
+      "aspect": "square"
+    }
+  ],
+  "evening|evening-drinks|Корона Экстра": [
+    {
+      "src": "/assets/drinks-20261009/drink-026.webp",
+      "label": "Корона Экстра",
+      "aspect": "square"
+    }
+  ],
+  "evening|evening-drinks|Бирра Моретти": [
+    {
+      "src": "/assets/drinks-20261009/drink-009.webp",
+      "label": "Бирра Моретти",
+      "aspect": "square"
+    }
+  ],
+  "lunch|lunch-tea|Чёрный / зелёный": [
+    {
+      "src": "/assets/drinks-20261009/drink-050.webp",
+      "label": "Чёрный чай — обед",
+      "aspect": "square"
+    },
+    {
+      "src": "/assets/drinks-20261009/drink-020.webp",
+      "label": "Зелёный чай — обед",
+      "aspect": "square"
+    }
+  ]
+}
