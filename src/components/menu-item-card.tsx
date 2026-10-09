@@ -6,15 +6,21 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Search, X } from "lucide-react";
 
 import type { MenuItem } from "@/data/menu";
+import type { MenuDishPhoto } from "@/data/menu-photos";
 import { cn } from "@/lib/utils";
 
 type MenuItemCardProps = {
   item: MenuItem;
   imageSrc?: string;
+  photos?: MenuDishPhoto[];
 };
 
-export function MenuItemCard({ item, imageSrc }: MenuItemCardProps) {
+export function MenuItemCard({ item, imageSrc: fallbackImage, photos = [] }: MenuItemCardProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [photoIndex, setPhotoIndex] = useState(0);
+  const photo = photos[photoIndex];
+  const imageSrc = photo?.src || fallbackImage;
+  const photoLabel = photo?.label || item.name;
 
   useEffect(() => {
     if (!isOpen) {
@@ -56,13 +62,13 @@ export function MenuItemCard({ item, imageSrc }: MenuItemCardProps) {
         {imageSrc && (
           <button
             type="button"
-            aria-label={`Открыть фото блюда ${item.name}`}
+            aria-label={`Открыть фото блюда ${photoLabel}`}
             onClick={() => setIsOpen(true)}
             className="menu-item-image group relative h-44 w-full cursor-zoom-in overflow-hidden rounded-xl bg-linen sm:col-start-1 sm:row-span-3 sm:row-start-1 sm:h-[112px] sm:w-[112px] sm:shrink-0"
           >
             <Image
               src={imageSrc}
-              alt={item.name}
+              alt={photoLabel}
               fill
               sizes="(max-width: 640px) 100vw, 112px"
               loading="lazy"
@@ -76,6 +82,20 @@ export function MenuItemCard({ item, imageSrc }: MenuItemCardProps) {
             </span>
           </button>
         )}
+
+        {photos.length > 1 && (
+          <div className="flex flex-wrap gap-2 sm:col-start-2" aria-label={`Варианты фото: ${item.name}`}>
+            {photos.map((variant, index) => (
+              <button key={variant.src} type="button" aria-pressed={photoIndex === index}
+                onClick={() => setPhotoIndex(index)}
+                className={cn("rounded-full border px-3 py-1 text-xs", photoIndex === index ? "border-clay text-clay" : "border-walnut/20 text-ink/70")}>
+                {variant.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {photo?.caption && <p className="text-xs text-ink/60 sm:col-start-2">{photo.caption}</p>}
 
         <p className={cn("menu-item-description text-sm leading-6 text-ink/62 md:min-h-12", imageSrc ? "sm:col-start-2" : "mt-2 md:mt-3")}>
           {item.description}
@@ -111,7 +131,7 @@ export function MenuItemCard({ item, imageSrc }: MenuItemCardProps) {
             >
               <Image
                 src={imageSrc}
-                alt={item.name}
+                alt={photoLabel}
                 fill
                 sizes="90vw"
                 decoding="async"
