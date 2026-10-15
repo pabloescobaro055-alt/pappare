@@ -8,7 +8,7 @@ export type MovieEvent = {
   venue: string; demo: boolean; duration?: string; age?: string;
   menuCourses?: { category: string; name: string }[];
 };
-export const movieEvents: MovieEvent[] = [11].map(day => (
+export const movieEvents: MovieEvent[] = [11, 20, 24].map(day => (
   { id: `eat-pray-love-202610${day}`, slug: `eat-pray-love-${day}-october`, title: 'Ешь, молись, люби',
     date: `2026-10-${day}`, time: '18:00', startsAt: `2026-10-${day}T18:00:00+08:00`,
     image: '/assets/eat-pray-love-poster.png', heroImage: '/assets/eat-pray-love-poster.png',
