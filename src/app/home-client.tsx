@@ -31,7 +31,7 @@ import { ReservationForm } from "@/components/reservation-form";
 import { SocialLinks } from "@/components/social-links";
 import { useMood, type Mood } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
-import { contactInfo } from "@/data/site";
+import { contactInfo, events } from "@/data/site";
 
 type IconType = ComponentType<{ size?: number; className?: string }>;
 
@@ -148,6 +148,7 @@ export default function Home() {
       <Hero mood={mood} setMood={setMood} active={active} />
       <Characters mood={mood} />
       <MenuPreview mood={mood} setMood={setMood} />
+      <Events mood={mood} />
       <CinemaPreview />
       <MoodGallery mood={mood} />
       <Reviews mood={mood} setMood={setMood} />
@@ -215,8 +216,8 @@ function Header({ mood }: { mood: Mood }) {
     <div className="absolute inset-x-0 top-0 z-20">
       <div className="container flex h-[4.5rem] items-center justify-between md:h-24">
         <Link href="/" className="font-display text-2xl font-semibold tracking-wide text-cream">Pappare</Link>
-        <nav className="hidden items-center gap-8 text-sm uppercase tracking-[0.18em] text-cream/78 md:flex">
-          <a href="#characters">Утро / День / Вечер</a><a href="#menu">Меню</a><Link href="/kino">Киноужин</Link><a href="#gallery">Галерея</a><a href="#reviews">Отзывы</a><a href="#contacts">Контакты</a>
+        <nav className="hidden items-center gap-4 text-xs uppercase tracking-[0.12em] text-cream/78 xl:flex">
+          <a href="#characters">Утро / День / Вечер</a><a href="#menu">Меню</a><a href="#events">События</a><Link href="/kino">Киноужин</Link><a href="#gallery">Галерея</a><a href="#reviews">Отзывы</a><a href="#contacts">Контакты</a>
         </nav>
         <Button asChild variant="outline" className={mood !== "night" ? "hidden border-cream/75 bg-cream/8 md:inline-flex" : "hidden md:inline-flex"}><Link href="#reservation">Забронировать</Link></Button>
       </div>
@@ -290,6 +291,41 @@ function MenuPreview({ mood, setMood }: { mood: Mood; setMood: (mood: Mood) => v
 function MenuMoodCard({ mood, item }: { mood: Mood; item: { title: string; text: string; icon: IconType; href: string } }) {
   const Icon = item.icon;
   return <motion.article whileHover={{ y: -5, scale: 1.015 }} className={`rounded-[1.5rem] border p-6 transition ${mood !== "night" ? "border-walnut/10 bg-linen/42 shadow-soft" : "border-amber/15 bg-cream/[0.055] shadow-[0_24px_80px_rgba(0,0,0,.2)]"}`}><Icon className={mood !== "night" ? "text-olive" : "text-amber"} size={28} /><h3 className="mt-5 font-display text-3xl font-semibold">{item.title}</h3><p className={`mt-3 leading-7 ${mood !== "night" ? "text-ink/64" : "text-cream/64"}`}>{item.text}</p><Link href={item.href} className="mt-5 inline-flex items-center gap-1 text-sm font-semibold underline underline-offset-4">Смотреть позиции <ArrowUpRight size={16} /></Link></motion.article>;
+}
+
+function Events({ mood }: { mood: Mood }) {
+  return (
+    <section id="events" aria-labelledby="events-title" className={`section-pad scroll-mt-8 ${mood === "night" ? "bg-[#10130f]" : "bg-linen/55"}`}>
+      <div className="container">
+        <p className={`text-sm font-semibold uppercase tracking-[0.24em] ${mood === "night" ? "text-amber" : "text-clay"}`}>События</p>
+        <h2 id="events-title" className="mt-3 font-display text-4xl font-semibold md:text-6xl">Встречаемся в Pappare</h2>
+        <div className="mt-7 grid gap-6 md:mt-10">
+          {events.map((event) => (
+            <article key={event.id} className="overflow-hidden rounded-[1.75rem] bg-[#18211f] text-cream shadow-soft">
+              <div className="relative aspect-[1500/662] bg-[#0c1211]">
+                <Image src={event.image} alt={event.imageAlt} fill sizes="(max-width: 1280px) 100vw, 1200px" className="object-contain" loading="lazy" />
+              </div>
+              <div className="grid gap-6 p-6 sm:p-8 lg:grid-cols-[1fr_0.65fr] lg:gap-12 lg:p-10">
+                <div>
+                  <time dateTime={event.date} className="inline-flex items-center gap-2 text-sm font-semibold text-amber"><CalendarDays size={18} />{event.dateLabel}</time>
+                  <h3 className="mt-4 font-display text-4xl font-semibold leading-tight md:text-5xl">{event.title}</h3>
+                  <p className="mt-5 leading-7 text-cream/85">{event.description}</p>
+                  <p className="mt-4 leading-7 text-cream/85">{event.invitation}</p>
+                </div>
+                <div className="flex flex-col items-start justify-center rounded-2xl border border-amber/25 bg-cream/5 p-5 sm:p-6">
+                  <ul className="flex flex-wrap gap-2" aria-label="Программа события">
+                    {event.highlights.map((highlight) => <li key={highlight} className="rounded-full border border-amber/35 px-3 py-2 text-sm text-amber">{highlight}</li>)}
+                  </ul>
+                  <p className="mt-5 leading-7 text-cream/85">{event.quiz}</p>
+                  <Button asChild variant="warm" className="mt-6"><Link href="#reservation"><CalendarDays size={18} />Забронировать стол</Link></Button>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
 }
 
 function CinemaPreview() {
