@@ -6,9 +6,9 @@ console.log('Read-only security check; this does not establish that the server i
 console.log('Time:',new Date().toISOString());
 console.log('Git revision:',run('git',['rev-parse','--short','HEAD']).stdout?.trim()||'unavailable');
 console.log('Node:',process.version);
-for(const name of ['next','sharp']){
- try {console.log(name+':',require(name+'/package.json').version);}catch{console.log(name+': unavailable');}
-}
+try {console.log('next:',require('next/package.json').version);}catch {console.log('next: unavailable');}
+// sharp deliberately does not export package.json; load its supported version API.
+try {console.log('sharp:',require('sharp').versions.sharp);}catch {console.log('sharp: failed to load');}
 const pm2=run('pm2',['jlist']);
 try {
  const entries=JSON.parse(pm2.stdout);
@@ -20,6 +20,15 @@ try {
   console.log('PM2 security settings:',JSON.stringify({adminKeyConfigured:(e.CINEMA_ADMIN_SECRET||'').length>=32,totpConfigured:!!e.CINEMA_ADMIN_TOTP_SECRET,serviceKeyConfigured:(e.CINEMA_SERVICE_SECRET||'').length>=32,ipAllowlistConfigured:!!e.CINEMA_ADMIN_ALLOWED_IPS}));
  }
 }catch {console.log('PM2 status unavailable');}
+const nginx=run('nginx',['-T']);
+if(nginx.status===0){
+ const config=(nginx.stdout||'').split('\n').map(line=>line.replace(/#.*/, '')).join('\n');
+ console.log('Nginx proxy settings (any active server block; confirm the site block before changing listeners):',JSON.stringify({
+  loopbackPort3000:/proxy_pass\s+http:\/\/(?:127\.0\.0\.1|localhost|\[::1\]):3000(?:[\/;\s])/.test(config),
+  realIpFromPeer:/proxy_set_header\s+X-Real-IP\s+\$remote_addr\s*;/i.test(config),
+  forwardedForIncludesPeer:/proxy_set_header\s+X-Forwarded-For\s+\$(?:remote_addr|proxy_add_x_forwarded_for)\s*;/i.test(config),
+ }));
+}else console.log('Nginx proxy settings: unavailable');
 for(const [name,command,args] of [
  ['Nginx configuration','nginx',['-t']],
  ['Listening TCP ports','ss',['-ltn']],
