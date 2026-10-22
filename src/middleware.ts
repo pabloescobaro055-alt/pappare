@@ -1,6 +1,8 @@
 import {NextRequest,NextResponse} from 'next/server';
 import {contentSecurityPolicy} from './lib/content-security';
+import {blockedPath} from './lib/blocked-path';
 export function middleware(request:NextRequest){
+ if(blockedPath(request.nextUrl.pathname))return new NextResponse(null,{status:404,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
  const nonce=btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(24))));
  const csp=contentSecurityPolicy(nonce,process.env.NODE_ENV==='development');
  const headers=new Headers(request.headers);
