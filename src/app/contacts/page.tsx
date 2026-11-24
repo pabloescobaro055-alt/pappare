@@ -32,17 +32,14 @@ export default function ContactsPage() {
       <JsonLd data={restaurantJsonLd()} />
 
       <section className="section-pad pt-8 md:pt-12">
-        <div className="container grid gap-7 lg:grid-cols-[0.82fr_1.18fr] lg:gap-10">
+        <div className="container grid gap-7 lg:grid-cols-[0.85fr_1.15fr] lg:gap-10">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-clay">
-              Контакты
-            </p>
             <h1 className="mt-3 font-display text-4xl font-semibold leading-tight md:mt-4 md:text-7xl">
-              Карта, маршрут и бронирование Pappare
+              Как добраться
             </h1>
             <p className="mt-4 max-w-xl text-base leading-7 text-ink/68 md:mt-6 md:text-lg md:leading-8">
-              Постройте маршрут до Pappare Italiano через удобный сервис или
-              оставьте заявку на стол для ближайшего вечера.
+              Выберите карту для маршрута или
+              оставьте заявку на стол.
             </p>
 
             <div className="mt-6 grid gap-3 text-ink/72 md:mt-8 md:gap-4">
@@ -75,7 +72,7 @@ export default function ContactsPage() {
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-lg bg-ink shadow-soft">
+          <div className="overflow-hidden rounded-2xl border border-current/15">
             <div className="relative min-h-[280px] md:min-h-[430px]">
               <iframe
                 title="Карта Pappare Italiano"
@@ -84,12 +81,12 @@ export default function ContactsPage() {
                 loading="lazy"
               />
             </div>
-            <div className="flex flex-col gap-4 bg-ink p-5 text-cream md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between">
               <div className="flex items-center gap-3">
-                <Leaf className="text-amber" size={22} />
-                <span className="text-sm text-cream/76">Откройте карту и постройте маршрут до Pappare.</span>
+                <Leaf className="text-clay" size={22} />
+                <span className="text-sm text-current/80">Откройте карту и постройте маршрут до Pappare.</span>
               </div>
-              <Button asChild variant="outline">
+              <Button asChild variant="warm">
                 <Link href={restaurant.twoGisUrl} target="_blank">
                   <Navigation size={18} />
                   Построить маршрут
@@ -100,11 +97,8 @@ export default function ContactsPage() {
         </div>
       </section>
 
-      <section id="reservation" className="section-pad bg-ink text-cream">
+      <section id="reservation" className="section-pad border-t border-current/15 bg-ink text-cream">
         <div className="container max-w-3xl">
-          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-amber">
-            Бронирование
-          </p>
           <h2 className="mt-3 font-display text-4xl font-semibold leading-tight md:mt-4 md:text-5xl">
             Забронировать стол
           </h2>

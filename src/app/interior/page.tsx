@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Footer } from "@/components/footer";
 import { JsonLd } from "@/components/json-ld";
-import { PremiumCarousel } from "@/components/premium-carousel";
+import Link from "next/link";
 import { SiteNav } from "@/components/site-nav";
 import { pageMetadata, restaurantJsonLd } from "@/lib/seo";
 
@@ -42,35 +42,27 @@ export default function InteriorPage() {
 
       <section className="section-pad pt-8 md:pt-12">
         <div className="container">
-          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-clay">
-            Интерьер
-          </p>
           <h1 className="mt-3 max-w-4xl font-display text-4xl font-semibold leading-tight md:mt-4 md:text-7xl">
-            Атмосфера, ради которой хочется остаться
+            Интерьер Pappare
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-ink/68 md:mt-6 md:text-lg md:leading-8">
             В Pappare легко задержаться: теплый зал для вечерних встреч,
             спокойные столы у окна и мягкий свет для неспешного вечера.
           </p>
 
-          <PremiumCarousel
-            ariaLabel="Галерея интерьера Pappare"
-            className="mt-8 md:mt-12"
-            slideClassName="w-[82vw] sm:w-[66vw] md:w-[62vw] xl:w-[58vw]"
-          >
-            {gallery.map((item) => (
-              <figure key={item.src} className="group relative aspect-[4/5] overflow-hidden rounded-lg shadow-soft sm:aspect-[5/4] lg:aspect-[16/9]">
-                <Image
-                  src={item.src}
-                  alt={item.title}
-                  fill
-                  loading="lazy"
-                  sizes="(max-width: 640px) 82vw, (max-width: 1024px) 66vw, 58vw"
-                  className="object-cover transition duration-700 group-hover:scale-105"
-                />
+          <div className="mt-7 flex flex-wrap gap-5 text-sm font-semibold">
+            <Link className="underline underline-offset-4" href="/contacts#reservation">Забронировать стол</Link>
+            <Link className="underline underline-offset-4" href="/contacts">Адрес и маршрут</Link>
+          </div>
+          <div className="pappare-interior-grid mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {gallery.map((item, index) => (
+              <figure key={item.src} className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-linen">
+                <Image src={item.src} alt={item.title} fill priority={index === 0}
+                  sizes={index === 0 ? "100vw" : "(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw"}
+                  className="object-cover" />
               </figure>
             ))}
-          </PremiumCarousel>
+          </div>
         </div>
       </section>
       <Footer />

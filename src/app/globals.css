@@ -55,6 +55,33 @@
   outline-offset: 4px;
 }
 
+.pappare-inner-nav nav a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  text-underline-offset: 0.3em;
+}
+
+.pappare-inner-nav nav a:hover,
+.pappare-inner-nav nav [aria-current="page"] {
+  text-decoration: underline;
+}
+
+.pappare-menu-jump a:hover {
+  background: #5d4432;
+  color: #fff8ef;
+}
+
+.pappare-interior-grid > :first-child {
+  grid-column: 1 / -1;
+  aspect-ratio: 16 / 9;
+}
+
+.theme-page :focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .pappare-hero-photo {
     animation: pappare-photo-enter 420ms ease-out both;
@@ -195,3 +222,6 @@ html[data-mood="night"] .theme-page .menu-item-image {
     padding: 2rem 0;
   }
 }
+
+.pappare-dish-dialog::backdrop { background: rgb(24 20 16 / 0.88); }
+html:has(.pappare-dish-dialog[open]) { overflow: hidden; }

@@ -1,28 +1,54 @@
-import {eventPriceLabel} from '@/data/cinema-pricing';
-import {loadEvents} from '@/lib/cinema/events';
-import Link from 'next/link';
-import {ArrowUpRight,Utensils,Film,Wine} from 'lucide-react';
-import {cinemaCopy,isPast,canBook,canSelectSeats,dateLabel,money} from '@/data/cinema';
-import {EventCard} from '@/components/cinema/event-card';
-import {Button} from '@/components/ui/button';
-export const dynamic='force-dynamic';
+import Link from "next/link";
+import Image from "next/image";
+import { ArrowUpRight } from "lucide-react";
+import { EventCard } from "@/components/cinema/event-card";
+import { Button } from "@/components/ui/button";
+import { cinemaCopy, isPast } from "@/data/cinema";
+import { contactInfo } from "@/data/site";
+import { loadEvents } from "@/lib/cinema/events";
+
+export const dynamic = "force-dynamic";
+
 export default async function CinemaLanding() {
-  const movieEvents=await loadEvents();
-  const upcoming=movieEvents.filter(e=>!isPast(e));
-  const examples=movieEvents.filter(e=>isPast(e));
-  const hero=upcoming[0]||examples[0];
-  return <main>
-    <section className="cinema-hero" style={{backgroundImage:`url('${hero?.heroImage||'/assets/pappare-night-mood.webp'}')`}}>
-      <div className="hero-shade"/><div className="hero-content"><div className="eyebrow">PAPPARE PRESENTS <span/> КИНО & ВКУС</div>
-      <p className="hero-kicker">Киноужин в PAPPARE</p><h1>Любимое кино.<br/><em>На вкус.</em></h1>
-      <p className="hero-description">Когда история на экране<br/>продолжается за вашим столом.</p>
-      {hero&&<div className="hero-event"><div><span className="eyebrow">{isPast(hero)?'ПРОШЕДШИЙ КИНОУЖИН':'БЛИЖАЙШИЙ КИНОУЖИН'}</span><h2>{hero.title}</h2><p>{dateLabel(hero)} · {hero.time}{hero.pricePerSeat>0&&<> <span className="hero-dot">/</span> {eventPriceLabel(hero)} за гостя</>}</p></div><Button asChild variant="warm"><Link href={`/kino/${hero.slug}${canSelectSeats(hero)?'/seats':''}`}>{canSelectSeats(hero)?'Выбрать места':'Смотреть меню'}<ArrowUpRight size={18}/></Link></Button></div>}
-      </div><div className="hero-bottom"><span>ИРКУТСК · ПЕРЕУЛОК БОГДАНОВА, 4</span><a href="#about">Откройте новый вечер ↓</a></div>
-    </section>
-    <section className="cinema-intro cinema-container" id="about"><div><span className="eyebrow">НЕ ПРОСТО СМОТРЕТЬ</span><h2>Почувствовать<br/><em>каждую сцену.</em></h2></div><div><p>{cinemaCopy.intro}</p><div className="experience"><span><Film size={20}/>Любимое кино</span><span><Utensils size={20}/>Авторские подачи</span><span><Wine size={20}/>Тёплая компания</span></div></div></section>
-    <section className="cinema-container evenings" id="evenings"><div className="section-heading"><div><span className="eyebrow">У КАЖДОГО ВЕЧЕРА — СВОЯ ИСТОРИЯ</span><h2>Ближайшие киноужины</h2></div><span className="muted">10 столов. 20 мест.<br/>Один особенный вечер.</span></div>
-      <div className="event-grid">{upcoming.map(e=><EventCard key={e.id} event={e}/>)}{!upcoming.length&&<p>Следующие показы пока не объявлены.</p>}</div>
-      {examples.length>0&&<><h2 className="soon-title">Прошедшие киноужины</h2><div className="event-grid">{examples.map(e=><EventCard key={e.id} event={e}/>)}</div></>}
-    </section><aside className="demo-note cinema-container">Третье место за столом — по согласованию с администратором: +7 (914) 938-66-60. Онлайн-оплата скоро появится.</aside>
-  </main>;
+  const events = await loadEvents();
+  const upcoming = events.filter((event) => !isPast(event));
+  const past = events.filter((event) => isPast(event));
+
+  return (
+    <main>
+      <section className="cinema-container cinema-showcase">
+        <div>
+          <h1>Киноужины<br />в Pappare</h1>
+          <p>{cinemaCopy.intro}</p>
+          <Button asChild variant="warm">
+            <a href="#evenings">Посмотреть афишу <ArrowUpRight size={18} /></a>
+          </Button>
+        </div>
+        <div className="cinema-showcase-image">
+          <Image src="/assets/pappare-cinema-evening-v2.png" alt="Зал Pappare во время киноужина"
+            fill priority sizes="(max-width: 760px) 100vw, 55vw" className="object-cover" />
+        </div>
+      </section>
+
+      <section className="cinema-container evenings" id="evenings">
+        <h2>Ближайшие киноужины</h2>
+        {upcoming.length ? (
+          <div className="event-grid">{upcoming.map((event) => <EventCard key={event.id} event={event} />)}</div>
+        ) : (
+          <p className="cinema-empty">Следующие показы пока не объявлены.</p>
+        )}
+        {past.length > 0 && (
+          <>
+            <h2 className="soon-title">Прошедшие киноужины</h2>
+            <div className="event-grid">{past.map((event) => <EventCard key={event.id} event={event} />)}</div>
+          </>
+        )}
+      </section>
+      <aside className="cinema-container cinema-visit">
+        <p>Третье место за столом можно согласовать с администратором.</p>
+        <a href={contactInfo.phoneHref}>{contactInfo.phone}</a>
+        <Link href="/kino/terms">Условия бронирования</Link>
+      </aside>
+    </main>
+  );
 }

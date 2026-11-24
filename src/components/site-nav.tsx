@@ -4,28 +4,24 @@ import Link from "next/link";
 import { CalendarDays } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { useMood } from "@/components/theme-provider";
+import { usePathname } from "next/navigation";
 
-export function SiteNav({ dark = false }: { dark?: boolean }) {
-  const { mood } = useMood();
-  const isDark = dark || mood === "night";
-  const text = isDark ? "text-cream" : "text-ink";
-  const muted = isDark ? "text-cream/82" : "text-ink/72";
+const links = [["/menu", "Меню"], ["/#events", "События"], ["/kino", "Киноужин"], ["/interior", "Интерьер"], ["/contacts", "Контакты"]] as const;
 
+export function SiteNav() {
+  const pathname = usePathname();
   return (
-    <header className={`absolute inset-x-0 top-0 z-30 ${text}`}>
-      <div className="container flex h-20 items-center justify-between">
+    <header className="pappare-inner-nav border-b border-current/15">
+      <div className="container flex flex-wrap items-center justify-between gap-x-6">
         <Link href="/" className="font-display text-2xl font-semibold tracking-wide">
           Pappare
         </Link>
-        <nav className={`hidden items-center gap-7 text-sm ${muted} md:flex`}>
-          <Link href="/menu">Меню</Link>
-          <Link href="/#events">События</Link>
-          <Link href="/kino">Киноужин</Link>
-          <Link href="/interior">Интерьер</Link>
-          <Link href="/contacts">Контакты</Link>
+        <nav aria-label="Основная навигация" className="order-last flex w-full flex-wrap justify-between gap-x-2 text-xs sm:justify-start sm:gap-x-4 sm:text-sm md:order-none md:w-auto lg:gap-x-6">
+          {links.map(([href, label]) => (
+            <Link key={href} href={href} aria-current={pathname === href ? "page" : undefined}>{label}</Link>
+          ))}
         </nav>
-        <Button asChild variant={isDark ? "outline" : "default"} className="hidden md:inline-flex">
+        <Button asChild variant="warm" className="my-2 h-10 px-4">
           <Link href="/contacts#reservation">
             <CalendarDays size={18} />
             Забронировать

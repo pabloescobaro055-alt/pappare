@@ -59,22 +59,19 @@ export default function MenuPage() {
 
       <section className="section-pad pt-8 md:pt-12">
         <div className="container">
-          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-clay">
-            Меню
-          </p>
           <h1 className="mt-3 max-w-4xl font-display text-4xl font-semibold leading-tight md:mt-4 md:text-7xl">
-            Всё меню Pappare
+            Меню Pappare
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-ink/68 md:mt-6 md:text-lg md:leading-8">
-            Завтраки, основное меню, бар, вечернее и обеденное предложения и блюда для детей. Все разделы доступны в любое время просмотра сайта.
+            Выберите раздел, чтобы перейти к блюдам и напиткам.
           </p>
 
-          <nav className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6 md:mt-10" aria-label="Разделы меню">
+          <nav className="pappare-menu-jump mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3 md:mt-8 lg:flex lg:flex-wrap" aria-label="Разделы меню">
             {menuGroups.map((group) => (
               <a
                 key={group.id}
                 href={`#${group.id}`}
-                className="flex min-h-12 items-center justify-center rounded-full border border-walnut/20 bg-linen/60 px-3 py-2.5 text-center text-sm font-medium leading-tight text-ink/72 transition hover:border-clay hover:text-clay md:px-4 md:py-3"
+                className="flex min-h-11 items-center justify-center rounded-full border border-current/25 px-2 text-center text-sm font-semibold sm:px-4"
               >
                 {group.title}
               </a>
@@ -97,17 +94,14 @@ export default function MenuPage() {
                       {group.description}
                     </p>
                   </div>
-                  <p className="text-sm font-medium text-clay">
-                    {group.sections.reduce((total, section) => total + section.items.length, 0)} позиций
-                  </p>
                 </div>
 
                 <div className="grid gap-4 md:gap-6">
                   {group.sections.map((section) => (
-                    <div key={section.id} className="rounded-lg bg-linen/50 p-4 shadow-soft md:p-8">
+                    <div key={section.id} className="border-t border-current/15 pt-4 md:pt-6">
                       <div className="mb-4 md:mb-6">
                         <h3 className="font-display text-3xl font-semibold">{section.title}</h3>
-                        <p className="mt-2 text-sm leading-6 text-ink/62 md:text-base md:leading-7">{section.intro}</p>
+                        {section.intro && <p className="mt-2 text-sm leading-6 text-ink/62 md:text-base">{section.intro}</p>}
                       </div>
                       <div className="grid gap-4 md:grid-cols-2">
                         {section.items.map((item) => (

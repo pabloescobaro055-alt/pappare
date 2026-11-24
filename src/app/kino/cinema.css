@@ -40,3 +40,77 @@
 .venue-video{display:block;width:100%;height:60dvh;max-height:650px;object-fit:contain;background:#10130f}.venue-media-switch{display:flex;gap:8px;margin-bottom:18px}.venue-media-switch button{padding:7px 18px;border:1px solid var(--border);border-radius:24px;color:var(--muted)}.venue-media-switch button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--bg)}@media(max-width:760px){.venue-video{height:52dvh}}
 
 .table-price{fill:var(--accent);font-size:10px;pointer-events:none}.admin-table-prices{margin:16px 0;padding:20px;border:1px solid var(--border);border-radius:8px}.admin-table-prices legend{padding:0 8px;font-size:18px}.admin-table-prices p{font-size:12px;color:var(--muted);margin-bottom:18px}.table-price-inputs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:20px}@media(max-width:500px){.table-price-inputs{grid-template-columns:1fr}}
+
+/* Shared Pappare page rhythm across programme, seats, orders and documents. */
+.cinema {
+  --bg: #211d17;
+  --surface: #2b251e;
+  --raised: #352e24;
+  --text: #f5efe7;
+  --muted: #d4c8b8;
+  --border: #695b48;
+  --accent: #e4b97c;
+}
+.cinema[data-theme="light"] {
+  --bg: #f5efe7;
+  --surface: #fff8ef;
+  --raised: #ede2d4;
+  --text: #34271e;
+  --muted: #59483b;
+  --border: #baaa96;
+  --accent: #794327;
+}
+.cinema-header nav a, .theme-switch { min-height: 44px; }
+.theme-switch { width: 44px; flex-shrink: 0; }
+.cinema-showcase {
+  display: grid;
+  grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr);
+  align-items: center;
+  gap: clamp(24px, 5vw, 64px);
+  padding-block: 36px 54px;
+}
+.cinema-showcase h1 { font-size: clamp(48px, 7vw, 96px); }
+.cinema-showcase p {
+  max-width: 42ch;
+  margin: 18px 0 24px;
+  font-size: 16px;
+  color: var(--muted);
+}
+.cinema-showcase-image {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--surface);
+}
+.cinema .evenings { padding-top: 36px; border-top: 1px solid var(--border); }
+.cinema .event-grid { margin-top: 20px; }
+.cinema-empty, .cinema-visit {
+  padding-block: 18px;
+  color: var(--muted);
+}
+.cinema-visit { border-top: 1px solid var(--border); margin-bottom: 32px; }
+.cinema-visit a { display: inline-flex; align-items: center; min-height: 44px; margin-right: 20px; text-decoration: underline; }
+.cinema .card-image, .cinema .movie-art, .cinema .movie-art img,
+.cinema .hall-wrap, .cinema .order-summary, .cinema .order-page, .cinema .admin-order {
+  border-radius: 16px;
+}
+.cinema .movie-art { min-height: 0; height: auto; aspect-ratio: 3 / 4; overflow: hidden; }
+.cinema .movie-art::after { content: none; }
+.cinema .movie-details h1 { font-size: clamp(42px, 6vw, 80px); margin-top: 0; }
+.cinema .hall-wrap { background: var(--surface); }
+.cinema .order-summary, .cinema .admin-order { background: var(--surface); }
+.cinema .order-page { max-width: min(92%, 700px); }
+.cinema .order-page h1, .cinema .admin-page h1 { font-size: clamp(36px, 6vw, 66px); overflow-wrap: anywhere; }
+.cinema .legal-page { max-width: 780px; font-size: 16px; }
+.cinema .legal-page li { margin-block: 8px; }
+.cinema .legal-page h1 { overflow-wrap: anywhere; }
+.cinema .admin-toolbar select { min-width: 0; max-width: 100%; }
+.cinema .order-link, .cinema .movie-purchase a { text-underline-offset: 4px; }
+.cinema .order-page p[role="alert"] { overflow-wrap: anywhere; }
+@media (max-width: 760px) {
+  .cinema-showcase { grid-template-columns: minmax(0, 1fr); padding-block: 28px 36px; }
+  .cinema-showcase-image { aspect-ratio: 16 / 10; }
+  .cinema .movie-art { max-height: 360px; }
+  .cinema .order-page { padding-inline: 18px; }
+}
