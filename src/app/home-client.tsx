@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, type ComponentType } from "react";
+import { useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, MotionConfig, motion } from "framer-motion";
 import {
   ArrowUpRight,
   CalendarDays,
@@ -14,7 +14,6 @@ import {
   GlassWater,
   MapPin,
   Moon,
-  Music2,
   Navigation,
   Phone,
   Pizza,
@@ -33,53 +32,40 @@ import { useMood, type Mood } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
 import { contactInfo, events } from "@/data/site";
 
-type IconType = ComponentType<{ size?: number; className?: string }>;
 
 type MoodContent = {
-  eyebrow: string;
-  headline: string;
   title: string;
   description: string[];
   cta: string;
   ctaHref: string;
   heroImage: string;
   time: string;
-  accent: string;
 };
 
 const moodContent: Record<Mood, MoodContent> = {
   morning: {
-    eyebrow: "Утро в Pappare",
-    headline: "Утро. День. Вечер.",
-    title: "Хорошего утра",
-    description: ["Завтраки с 08:00 до 12:00.", "Панини, каши и яйца.", "Обеденное предложение по будням.", "Детское меню для маленьких гостей."],
+    title: "Завтраки",
+    description: ["Панини, каши и яйца.", "Обеденное предложение по будням.", "Детское меню для маленьких гостей."],
     cta: "Посмотреть завтраки",
     ctaHref: "/menu#breakfast",
     heroImage: "/assets/morning/morning-9.jpg",
     time: "с 08:00 до 12:00",
-    accent: "text-amber",
   },
   day: {
-    eyebrow: "Дневная траттория",
-    headline: "Утро. День. Вечер.",
-    title: "Классическая Италия",
-    description: ["Настоящая паста.", "Пицца из печи.", "Салаты и горячие блюда.", "Детское меню.", "Итальянское гостеприимство."],
+    title: "Итальянская кухня",
+    description: ["Настоящая паста.", "Пицца из печи.", "Салаты и горячие блюда.", "Детское меню."],
     cta: "Посмотреть меню",
     ctaHref: "/menu#main",
     heroImage: "/assets/pappare-day-v2.png",
     time: "с 12:00 до 18:00",
-    accent: "text-olive",
   },
   night: {
-    eyebrow: "Вечерний бар",
-    headline: "Утро. День. Вечер.",
-    title: "Бар друзей",
-    description: ["Крафтовое пиво.", "Горячие закуски.", "Музыка.", "Шутки.", "Хорошая компания.", "До поздней ночи."],
+    title: "Вечерний бар",
+    description: ["Крафтовое пиво.", "Горячие закуски.", "Музыка."],
     cta: "Посмотреть меню",
     ctaHref: "/menu#evening",
     heroImage: "/assets/pappare-cinema-evening-v2.png",
     time: "с 18:00 до 22:00",
-    accent: "text-amber",
   },
 };
 
@@ -140,14 +126,15 @@ export default function Home() {
   const active = moodContent[mood];
 
   return (
+    <MotionConfig reducedMotion="user">
     <motion.main
       animate={{ backgroundColor: mood !== "night" ? "#F5EFE7" : "#1C1B17", color: mood !== "night" ? "#2B2B2B" : "#F5EFE7" }}
       transition={sectionTransition}
-      className={`overflow-hidden ${mood === "night" ? "night-mode-surface" : ""}`}
+      className={`pappare-home overflow-hidden ${mood === "night" ? "night-mode-surface" : ""}`}
     >
       <Hero mood={mood} setMood={setMood} active={active} />
-      <Characters mood={mood} />
-      <MenuPreview mood={mood} setMood={setMood} />
+      <VisitDetails />
+      <MenuPreview mood={mood} />
       <Events mood={mood} />
       <CinemaPreview />
       <MoodGallery mood={mood} />
@@ -156,101 +143,71 @@ export default function Home() {
       <Contacts mood={mood} />
       <Footer />
     </motion.main>
+    </MotionConfig>
   );
 }
 
 function Hero({ mood, setMood, active }: { mood: Mood; setMood: (mood: Mood) => void; active: MoodContent }) {
   return (
-    <section className="relative min-h-[100svh] overflow-hidden text-cream">
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={active.heroImage}
-          initial={{ opacity: 0, scale: 1.04 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 1.02 }}
-          transition={sectionTransition}
-          className="absolute inset-0"
-        >
-          <Image src={active.heroImage} alt={mood === "morning" ? "Завтрак в Pappare" : mood === "day" ? "Дневной интерьер Pappare" : "Киноужин при свечах в Pappare"} fill priority sizes="100vw" className={`object-cover ${mood === "night" ? "night-hero-image" : ""}`} />
-        </motion.div>
-      </AnimatePresence>
-      <motion.div
-        animate={{
-          background:
-            mood !== "night"
-              ? "linear-gradient(90deg, rgba(33,35,25,.42), rgba(33,35,25,.08) 45%, rgba(33,35,25,.34)), linear-gradient(180deg, rgba(33,35,25,.45), rgba(33,35,25,.22) 42%, rgba(33,35,25,.68))"
-              : "linear-gradient(90deg, rgba(35,29,20,.36), rgba(35,29,20,.10) 45%, rgba(35,29,20,.42)), linear-gradient(180deg, rgba(35,29,20,.38), rgba(35,29,20,.12) 42%, rgba(35,29,20,.52))",
-        }}
-        transition={sectionTransition}
-        className="absolute inset-0"
-      />
-      <Header mood={mood} />
-      <div className="container relative z-10 flex min-h-[100svh] flex-col justify-center pb-12 pt-24">
-        <motion.div initial="hidden" animate="show" transition={{ staggerChildren: 0.12 }} className="mx-auto flex max-w-5xl flex-col items-center text-center">
-          <motion.p variants={fadeUp} className="text-xs font-medium uppercase tracking-[0.32em] text-cream/78 md:text-sm">Pappare Italiano</motion.p>
-          <motion.div variants={fadeUp} className="mt-6"><LogoMark /></motion.div>
-          <AnimatePresence mode="wait">
-            <motion.div key={mood} initial={{ opacity: 0, y: 18, filter: "blur(8px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} exit={{ opacity: 0, y: -18, filter: "blur(8px)" }} transition={sectionTransition} className="mt-7">
-              <p className="text-sm uppercase tracking-[0.34em] text-cream/76 md:text-base">{active.headline}</p>
-              <h1 className="mt-5 font-display text-5xl font-semibold leading-[0.95] md:text-8xl">{active.title}</h1>
-            </motion.div>
-          </AnimatePresence>
-          <motion.div variants={fadeUp} className="mt-8"><DayNightSwitch mood={mood} setMood={setMood} /></motion.div>
-          <AnimatePresence mode="wait">
-            <motion.div key={`${mood}-text`} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={sectionTransition} className="mt-8 flex max-w-4xl justify-center">
-              <MoodPanel content={active} active icon={mood === "morning" ? Coffee : mood === "day" ? Sun : Moon} />
-            </motion.div>
-          </AnimatePresence>
-          <motion.div variants={fadeUp} className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <Button asChild className="h-[3.25rem] border border-cream/20 bg-cream px-7 text-ink hover:bg-linen"><Link href={active.ctaHref}>{active.cta}</Link></Button>
-            <Button asChild variant="outline" className="h-[3.25rem] px-7"><Link href="#reservation"><CalendarDays size={18} />Забронировать стол</Link></Button>
-          </motion.div>
-        </motion.div>
+    <section className="pappare-hero border-b border-current/15">
+      <header className="border-b border-current/15">
+        <nav aria-label="Основная навигация" className="container flex min-h-14 flex-wrap items-center justify-between gap-x-3 text-sm lg:min-h-16">
+          <a href="#menu">Меню</a>
+          <a href="#events">События</a>
+          <Link href="/kino">Киноужин</Link>
+          <a href="#gallery" className="hidden sm:inline-flex">Галерея</a>
+          <a href="#contacts">Контакты</a>
+          <a href="#reservation" className="hidden font-semibold md:inline-flex">Бронь стола</a>
+        </nav>
+      </header>
+      <div className="container grid items-stretch gap-6 pb-8 pt-6 lg:grid-cols-[0.85fr_1.15fr] lg:gap-12 lg:pb-12 lg:pt-10">
+        <div className="flex min-w-0 flex-col justify-center lg:py-8">
+          <h1 className="font-display text-[clamp(3.25rem,8vw,7rem)] font-semibold leading-[0.85] tracking-[-0.035em]">Pappare</h1>
+          <p className="mt-3 text-base font-medium">Итальянская траттория в Иркутске</p>
+          <div className="mt-5 lg:mt-8"><DayNightSwitch mood={mood} setMood={setMood} /></div>
+          <div aria-live="polite" className="mt-5 min-h-24 lg:mt-7">
+            <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <span className="font-display text-3xl font-semibold leading-none">{active.title}</span>
+              <span className="text-sm tabular-nums">{active.time}</span>
+            </p>
+            <p className="mt-2 max-w-md text-sm leading-relaxed opacity-85 sm:text-base">{active.description.join(" ")}</p>
+          </div>
+          <div className="mt-2 flex flex-wrap gap-2 lg:mt-5">
+            <Button asChild variant="warm"><Link href={active.ctaHref}>{active.cta}<ArrowUpRight size={16} /></Link></Button>
+            <Button asChild className="pappare-book"><a href="#reservation">Забронировать стол</a></Button>
+          </div>
+        </div>
+        <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-walnut sm:aspect-[16/10] lg:aspect-auto lg:min-h-[min(58vw,560px)]">
+          <Image key={active.heroImage} src={active.heroImage} alt={heroImageAlt[mood]} fill
+            priority={mood === "day"} loading={mood === "day" ? undefined : "eager"}
+            sizes="(max-width: 1023px) 100vw, 55vw" className="pappare-hero-photo object-cover" />
+        </div>
       </div>
     </section>
   );
 }
 
-function Header({ mood }: { mood: Mood }) {
-  return (
-    <div className="absolute inset-x-0 top-0 z-20">
-      <div className="container flex h-[4.5rem] items-center justify-between md:h-24">
-        <Link href="/" className="font-display text-2xl font-semibold tracking-wide text-cream">Pappare</Link>
-        <nav className="hidden items-center gap-4 text-xs uppercase tracking-[0.12em] text-cream/78 xl:flex">
-          <a href="#characters">Утро / День / Вечер</a><a href="#menu">Меню</a><a href="#events">События</a><Link href="/kino">Киноужин</Link><a href="#gallery">Галерея</a><a href="#reviews">Отзывы</a><a href="#contacts">Контакты</a>
-        </nav>
-        <Button asChild variant="outline" className={mood !== "night" ? "hidden border-cream/75 bg-cream/8 md:inline-flex" : "hidden md:inline-flex"}><Link href="#reservation">Забронировать</Link></Button>
-      </div>
-    </div>
-  );
-}
-
-function LogoMark() {
-  return <div className="relative"><div className="absolute inset-x-6 top-1/2 h-px -translate-y-1/2 bg-cream/24" /><div className="relative px-2 font-display text-[clamp(3.1rem,12vw,12rem)] font-semibold leading-none tracking-[0.025em] text-cream sm:px-6 sm:tracking-[0.06em]">PAPPARE</div></div>;
-}
+const heroImageAlt: Record<Mood, string> = {
+  morning: "Завтрак на террасе Pappare",
+  day: "Дневной интерьер Pappare",
+  night: "Киноужин при свечах в Pappare",
+};
 
 function DayNightSwitch({ mood, setMood }: { mood: Mood; setMood: (mood: Mood) => void }) {
-  const modes: { id: Mood; label: string; icon: IconType }[] = [
+  const modes = [
     { id: "morning", label: "Утро", icon: Coffee },
     { id: "day", label: "День", icon: Sun },
     { id: "night", label: "Вечер", icon: Moon },
-  ];
+  ] as const;
   return (
-    <div className="relative rounded-full border border-cream/24 bg-cream/16 p-1.5 shadow-[0_24px_80px_rgba(0,0,0,.24)] backdrop-blur-xl">
-      <div className="relative grid w-[min(88vw,450px)] grid-cols-3">
-        <motion.div animate={{ x: `${modes.findIndex((mode) => mode.id === mood) * 100}%` }} transition={sectionTransition} className="absolute inset-y-0 left-0 w-1/3 rounded-full bg-cream" />
-        {modes.map(({ id, label, icon: Icon }) => <button key={id} type="button" onClick={() => setMood(id)} aria-pressed={mood === id} className={`relative z-10 flex h-14 items-center justify-center gap-1.5 rounded-full text-xs font-medium uppercase tracking-[0.1em] transition-colors sm:gap-2 sm:text-sm ${mood === id ? "text-ink" : "text-cream/78"}`}><Icon size={17} />{label}</button>)}
-      </div>
+    <div role="group" aria-label="Время дня" className="pappare-moods grid max-w-[26rem] grid-cols-3 gap-1 rounded-full border border-current/20 p-1">
+      {modes.map(({ id, label, icon: Icon }) => (
+        <button key={id} type="button" onClick={() => setMood(id)} aria-pressed={mood === id}
+          className="flex min-h-11 items-center justify-center gap-1.5 rounded-full text-sm font-semibold transition-colors">
+          <Icon size={16} aria-hidden="true" />{label}
+        </button>
+      ))}
     </div>
-  );
-}
-
-function MoodPanel({ content, active, icon: Icon }: { content: MoodContent; active: boolean; icon: IconType }) {
-  return (
-    <motion.div animate={{ opacity: active ? 1 : 0.58, scale: active ? 1 : 0.97 }} transition={sectionTransition} className="mx-auto max-w-sm">
-      <div className="mb-4 flex items-center justify-center gap-3 text-cream/82"><Icon className={active ? content.accent : "text-cream/58"} size={23} /><span className="text-sm uppercase tracking-[0.22em]">{content.time}</span></div>
-      <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 text-base leading-7 text-cream/84 md:text-lg">{content.description.map((line) => <span key={line}>{line}</span>)}</div>
-    </motion.div>
   );
 }
 
@@ -264,44 +221,62 @@ function SectionTitle({ eyebrow, title, text, mood }: { eyebrow: string; title: 
   );
 }
 
-function Characters({ mood }: { mood: Mood }) {
+function VisitDetails() {
   return (
-    <section id="characters" className={`section-pad ${mood !== "night" ? "bg-linen/55" : "bg-[#211F19]"}`}>
-      <div className="container"><SectionTitle eyebrow="Три настроения" title="Один ресторан. Весь день." text="Начните день с завтрака, загляните на обед или проведите вечер с друзьями." mood={mood} />
-        <div className="grid gap-5 md:grid-cols-3"><CharacterCard mood={mood} title="Утром" icon={Coffee} items={["Завтраки 08:00–12:00", "Панини и фокачча", "Каши и яйца", "Кофе"]} active={mood === "morning"} /><CharacterCard mood={mood} title="Днем" icon={Sun} items={["Основное меню", "Итальянская кухня", "Детское меню"]} active={mood === "day"} /><CharacterCard mood={mood} title="Вечером" icon={Moon} items={["Вечернее меню", "Бургеры и закуски", "Пивная карта"]} active={mood === "night"} /></div>
+    <section id="characters" aria-label="Как нас найти" className="border-b border-current/15">
+      <div className="container flex flex-wrap items-center justify-between gap-x-8 gap-y-2 py-5 text-sm sm:text-base">
+        <a className="inline-flex min-h-11 items-center gap-2" href="#contacts"><MapPin size={18} />{contactInfo.address}</a>
+        <p className="flex min-h-11 items-center gap-2"><Clock size={18} />{contactInfo.hours}</p>
+        <a className="inline-flex min-h-11 items-center gap-2" href={contactInfo.phoneHref}><Phone size={17} />{contactInfo.phone}</a>
       </div>
     </section>
   );
 }
 
-function CharacterCard({ mood, title, icon: Icon, items, active }: { mood: Mood; title: string; icon: IconType; items: string[]; active: boolean }) {
-  return <motion.article initial={{ opacity: 0, y: 26 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} whileHover={{ y: -4 }} animate={{ scale: active ? 1 : 0.985, opacity: active ? 1 : 0.82 }} transition={sectionTransition} className={`rounded-[2rem] border p-7 md:p-9 ${mood !== "night" ? "border-walnut/10 bg-cream shadow-soft" : "border-amber/15 bg-cream/[0.055] shadow-[0_24px_80px_rgba(0,0,0,.24)]"}`}><div className="flex items-center gap-4"><div className={`flex h-14 w-14 items-center justify-center rounded-full ${active ? "bg-amber text-ink" : mood !== "night" ? "bg-linen text-olive" : "bg-cream/10 text-cream/70"}`}><Icon size={26} /></div><h3 className="font-display text-4xl font-semibold">{title}</h3></div><div className="mt-7 grid gap-3">{items.map((item) => <p key={item} className={`border-b pb-3 text-lg ${mood !== "night" ? "border-walnut/10 text-ink/72" : "border-cream/10 text-cream/72"}`}>{item}</p>)}</div></motion.article>;
-}
-
-function MenuPreview({ mood, setMood }: { mood: Mood; setMood: (mood: Mood) => void }) {
+function MenuPreview({ mood }: { mood: Mood }) {
   return (
-    <section id="menu" className={`section-pad ${mood !== "night" ? "bg-cream" : "bg-[#1C1B17]"}`}><div className="container"><SectionTitle eyebrow="Меню" title="Всё меню Pappare" text="Завтраки, основное меню, бар, вечерние блюда, обед и детское меню доступны в каждом режиме сайта." mood={mood} />
-      <div className="mx-auto mb-8 flex w-fit rounded-full border border-current/10 p-1">{([ ["morning", "Утро"], ["day", "День"], ["night", "Вечер"] ] as const).map(([id, label]) => <button key={id} type="button" onClick={() => setMood(id)} aria-pressed={mood === id} className={`rounded-full px-4 py-3 text-sm font-medium transition sm:px-5 ${mood === id ? mood === "night" ? "bg-amber text-ink" : "bg-ink text-cream" : "text-current/62"}`}>{label}</button>)}</div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{menuCards.map((item) => <MenuMoodCard key={item.title} mood={mood} item={item} />)}</div>
-      <div className="mt-8 flex justify-center"><Button asChild className={mood !== "night" ? "bg-clay text-white hover:bg-walnut" : "bg-amber text-ink hover:bg-cream"}><Link href="/menu">Посмотреть всё меню<ArrowUpRight size={18} /></Link></Button></div>
-    </div></section>
+    <section id="menu" className="section-pad">
+      <div className="container grid items-start gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:gap-12">
+        <div>
+          <h2 className="font-display text-5xl font-semibold leading-none md:text-7xl">Меню Pappare</h2>
+          <div className="relative mt-6 aspect-[4/3] overflow-hidden rounded-2xl bg-linen">
+            <Image src="/assets/menu-20261008/dish-046.jpg" alt="Пицца «Маргарита»" fill
+              sizes="(max-width: 1023px) 100vw, 44vw" className="object-cover" />
+          </div>
+        </div>
+        <ul className="divide-y divide-current/15 border-y border-current/15" aria-label="Разделы меню">
+          {menuCards.map(({ title, href, text, icon: Icon }) => (
+            <li key={href}>
+              <Link href={href} className="group grid min-h-20 grid-cols-[auto_1fr_auto] items-center gap-4 py-4">
+                <Icon size={21} aria-hidden="true" className={mood === "night" ? "text-amber" : "text-clay"} />
+                <span>
+                  <span className="block font-display text-2xl font-semibold leading-tight">{title}</span>
+                  <span className="mt-1 block text-sm leading-snug opacity-80">{text}</span>
+                </span>
+                <ArrowUpRight size={18} aria-hidden="true" className="transition-transform motion-safe:group-hover:-translate-y-0.5 motion-safe:group-hover:translate-x-0.5" />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
   );
-}
-
-function MenuMoodCard({ mood, item }: { mood: Mood; item: { title: string; text: string; icon: IconType; href: string } }) {
-  const Icon = item.icon;
-  return <motion.article whileHover={{ y: -5, scale: 1.015 }} className={`rounded-[1.5rem] border p-6 transition ${mood !== "night" ? "border-walnut/10 bg-linen/42 shadow-soft" : "border-amber/15 bg-cream/[0.055] shadow-[0_24px_80px_rgba(0,0,0,.2)]"}`}><Icon className={mood !== "night" ? "text-olive" : "text-amber"} size={28} /><h3 className="mt-5 font-display text-3xl font-semibold">{item.title}</h3><p className={`mt-3 leading-7 ${mood !== "night" ? "text-ink/64" : "text-cream/64"}`}>{item.text}</p><Link href={item.href} className="mt-5 inline-flex items-center gap-1 text-sm font-semibold underline underline-offset-4">Смотреть позиции <ArrowUpRight size={16} /></Link></motion.article>;
 }
 
 function Events({ mood }: { mood: Mood }) {
   return (
     <section id="events" aria-labelledby="events-title" className={`section-pad scroll-mt-8 ${mood === "night" ? "bg-[#10130f]" : "bg-linen/55"}`}>
       <div className="container">
-        <p className={`text-sm font-semibold uppercase tracking-[0.24em] ${mood === "night" ? "text-amber" : "text-clay"}`}>События</p>
-        <h2 id="events-title" className="mt-3 font-display text-4xl font-semibold md:text-6xl">Встречаемся в Pappare</h2>
+        <h2 id="events-title" className="font-display text-4xl font-semibold md:text-6xl">События в Pappare</h2>
+        <Link href="/kino" className="mt-3 inline-flex min-h-11 items-center gap-2 underline underline-offset-4">Афиша киноужинов <ArrowUpRight size={16} /></Link>
         <div className="mt-7 grid gap-6 md:mt-10">
           {events.map((event) => (
-            <article key={event.id} className="overflow-hidden rounded-[1.75rem] bg-[#18211f] text-cream shadow-soft">
+            <details key={event.id} className="overflow-hidden rounded-2xl border border-current/15">
+              <summary className="cursor-pointer px-5 py-4 sm:px-8">
+                <span className="ml-2 font-semibold">{event.title}</span>
+                <span className="ml-3 text-sm opacity-80">31 октября 2026 · Архив</span>
+              </summary>
+              <article className="bg-[#18211f] text-cream">
               <div className="relative aspect-[1500/662] bg-[#0c1211]">
                 <Image src={event.image} alt={event.imageAlt} fill sizes="(max-width: 1280px) 100vw, 1200px" className="object-contain" loading="lazy" />
               </div>
@@ -317,10 +292,10 @@ function Events({ mood }: { mood: Mood }) {
                     {event.highlights.map((highlight) => <li key={highlight} className="rounded-full border border-amber/35 px-3 py-2 text-sm text-amber">{highlight}</li>)}
                   </ul>
                   <p className="mt-5 leading-7 text-cream/85">{event.quiz}</p>
-                  <Button asChild variant="warm" className="mt-6"><Link href="#reservation"><CalendarDays size={18} />Забронировать стол</Link></Button>
                 </div>
               </div>
-            </article>
+              </article>
+            </details>
           ))}
         </div>
       </div>

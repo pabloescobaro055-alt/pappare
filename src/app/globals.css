@@ -8,6 +8,68 @@
   scroll-behavior: smooth;
 }
 
+.pappare-hero {
+  background: #f5efe7;
+  color: #34271e;
+}
+
+.night-mode-surface .pappare-hero {
+  background: #211d17;
+  color: #f5efe7;
+}
+
+.pappare-hero nav a {
+  min-height: 44px;
+  align-items: center;
+  align-content: center;
+  text-underline-offset: 0.25em;
+}
+
+.pappare-hero nav a:hover {
+  text-decoration: underline;
+}
+
+.pappare-hero .pappare-book {
+  color: inherit;
+  background: transparent;
+  border: 1px solid currentColor;
+}
+
+.pappare-moods button:hover,
+.pappare-hero .pappare-book:hover {
+  background: rgb(128 100 70 / 0.12);
+}
+
+.pappare-moods button[aria-pressed="true"] {
+  color: #fff8ef;
+  background: #5d4432;
+}
+
+.night-mode-surface .pappare-moods button[aria-pressed="true"] {
+  color: #34271e;
+  background: #f5efe7;
+}
+
+.pappare-home :focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pappare-hero-photo {
+    animation: pappare-photo-enter 420ms ease-out both;
+  }
+}
+
+@keyframes pappare-photo-enter {
+  from { opacity: 0.65; transform: scale(1.025); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { scroll-behavior: auto; }
+}
+
 * {
   box-sizing: border-box;
 }
